@@ -1,5 +1,7 @@
+use starknet::ContractAddress;
+
 #[starknet::interface]
-trait IvUSD<TContractState> {
+pub trait IvUSD<TContractState> {
     fn mint(ref self: TContractState, recipient: ContractAddress, amount: u256);
     fn burn(ref self: TContractState, account: ContractAddress, amount: u256);
     fn get_minter(self: @TContractState) -> ContractAddress;
@@ -7,24 +9,43 @@ trait IvUSD<TContractState> {
 }
 
 #[starknet::contract]
-mod vUSD {
-    use openzeppelin::access::ownable::OwnableComponent;
-    use openzeppelin::token::erc20::ERC20Component;
+pub mod vUSD {
+    use OwnableComponent::InternalTrait;
+    use super::IvUSD;
     use starknet::ContractAddress;
-    use starknet::get_caller_address;
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use openzeppelin_access::ownable::OwnableComponent;
+    use openzeppelin_token::erc20::ERC20Component;
 
-    component!(path: ERC20Component, storage: erc20, event: ERC20Event);
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
+    component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
     #[abi(embed_v0)]
     impl ERC20Impl = ERC20Component::ERC20Impl<ContractState>;
     #[abi(embed_v0)]
-    impl ERC20MetadataImpl = ERC20Component::ERC20MetadataImpl<ContractState>;
+    impl ERC20CamelOnlyImpl = ERC20Component::ERC20CamelOnlyImpl<ContractState>;
     #[abi(embed_v0)]
     impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
-
+    impl InternalImpl = OwnableComponent::InternalImpl<ContractState>;
     impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
-    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+
+    impl ERC20HooksImpl of ERC20Component::ERC20HooksTrait<ContractState> {
+        fn before_update(
+            ref self: ERC20Component::ComponentState<ContractState>,
+            from: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256
+        ) {}
+
+        fn after_update(
+            ref self: ERC20Component::ComponentState<ContractState>,
+            from: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256
+        ) {}
+    }
+
+    
 
     #[storage]
     struct Storage {
@@ -64,16 +85,19 @@ mod vUSD {
         self.minter.write(minter);
     }
 
+    #[abi(embed_v0)]
     #[external(v0)]
-    impl vUSDImpl of super::IvUSD<ContractState> {
+    impl vUSDImpl of IvUSD<ContractState> {
         fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
-            self._assert_only_minter();
-            self.erc20._mint(recipient, amount);
+            let caller = starknet::get_caller_address();
+            assert!(caller == self.minter.read(), "Only the minter can burn vUSD");
+            self.erc20.mint(recipient, amount);
         }
 
         fn burn(ref self: ContractState, account: ContractAddress, amount: u256) {
-            self._assert_only_minter();
-            self.erc20._burn(account, amount);
+            let caller = starknet::get_caller_address();
+            assert!(caller == self.minter.read(), "Only the minter can burn vUSD");
+            self.erc20.burn(account, amount);
         }
 
         fn get_minter(self: @ContractState) -> ContractAddress {
@@ -86,15 +110,6 @@ mod vUSD {
             self.minter.write(new_minter);
             
             self.emit(MinterChanged { old_minter, new_minter });
-        }
-    }
-
-    #[generate_trait]
-    impl InternalImpl of InternalTrait {
-        fn _assert_only_minter(self: @ContractState) {
-            let caller = get_caller_address();
-            let authorized_minter = self.minter.read();
-            assert(caller == authorized_minter, 'Only minter can call this');
         }
     }
 }
