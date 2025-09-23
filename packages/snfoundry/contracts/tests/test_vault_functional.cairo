@@ -1,6 +1,5 @@
 use starknet::{ContractAddress, contract_address_const};
 use snforge_std::{declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address, stop_cheat_caller_address};
-use contracts::MockOracle::{IMockOracleDispatcher, IMockOracleDispatcherTrait};
 use contracts::VoltaVault::{IVoltaVaultDispatcher, IVoltaVaultDispatcherTrait};
 use contracts::MockWBTC::{IMockWBTCDispatcher, IMockWBTCDispatcherTrait};
 use contracts::vUSD::{IvUSDDispatcher, IvUSDDispatcherTrait};
