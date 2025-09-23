@@ -9,12 +9,15 @@ edition = "2024_07"
 starknet = ">=2.12.0"
 openzeppelin_access = ">=2.0.0"
 openzeppelin_token = ">=2.0.0"
+openzeppelin_security = ">=2.0.0"
+pragma_lib = { git = "https://github.com/astraly-labs/pragma-lib" }
 
 [dev-dependencies]
 cairo_test = "2.12.0"
 openzeppelin_utils = ">=2.0.0"
 openzeppelin_testing = ">=4.6.0"
 snforge_std = ">=0.49.0"
+cairo_test = "2.12.0"
 
 [[target.starknet-contract]]
 casm = true # taggle this to `false` to speed up compilation/script tests
