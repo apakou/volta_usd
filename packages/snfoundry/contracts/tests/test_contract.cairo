@@ -1,5 +1,5 @@
-use contracts::VaultaVolt::YourContract::FELT_STRK_CONTRACT;
-use contracts::VaultaVolt::{IYourContractDispatcher, IYourContractDispatcherTrait};
+use contracts::VoltaVault::YourContract::FELT_STRK_CONTRACT;
+use contracts::VoltaVault::{IYourContractDispatcher, IYourContractDispatcherTrait};
 use openzeppelin_testing::declare_and_deploy;
 use openzeppelin_token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
 use openzeppelin_utils::serde::SerializedAppend;

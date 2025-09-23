@@ -1,2 +1,3 @@
-pub mod VaultaVolt;
+pub mod VoltaVault;
+pub mod vUSD;
 
