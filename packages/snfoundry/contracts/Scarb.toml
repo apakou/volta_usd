@@ -17,7 +17,6 @@ cairo_test = "2.12.0"
 openzeppelin_utils = ">=2.0.0"
 openzeppelin_testing = ">=4.6.0"
 snforge_std = ">=0.49.0"
-cairo_test = "2.12.0"
 
 [[target.starknet-contract]]
 casm = true # taggle this to `false` to speed up compilation/script tests
