@@ -90,7 +90,7 @@ pub mod vUSD {
     impl vUSDImpl of IvUSD<ContractState> {
         fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
             let caller = starknet::get_caller_address();
-            assert!(caller == self.minter.read(), "Only the minter can burn vUSD");
+            assert!(caller == self.minter.read(), "Only the minter can mint vUSD");
             self.erc20.mint(recipient, amount);
         }
 
