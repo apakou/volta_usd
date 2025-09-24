@@ -1,4 +1,4 @@
-use starknet::{ContractAddress, contract_address_const};
+use starknet::contract_address_const;
 use snforge_std::{declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address, stop_cheat_caller_address};
 use contracts::VoltaVault::{IVoltaVaultDispatcher, IVoltaVaultDispatcherTrait};
 use contracts::MockWBTC::{IMockWBTCDispatcher, IMockWBTCDispatcherTrait};
