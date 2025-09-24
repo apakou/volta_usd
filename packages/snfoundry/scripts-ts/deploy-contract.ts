@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import * as fs from "fs";
+import * as path from "path";
 import { networks } from "./helpers/networks";
 import yargs from "yargs";
 import {
@@ -168,7 +168,7 @@ const declareIfNot_NotWait = async (
 
   try {
     const declareOptions =
-      networkName === "devnet" ? { ...options, tip: 1000n } : { ...options };
+      networkName === "devnet" ? { ...options, tip: BigInt(1000) } : { ...options };
     const { transaction_hash } = await deployer.declare(
       payload,
       declareOptions
@@ -375,13 +375,10 @@ const deployContract = async (
 
   console.log(yellow("Deploying Contract "), contractName || contract);
 
-  let { classHash } = await declareIfNot_NotWait(
-    {
-      contract: compiledContractSierra,
-      casm: compiledContractCasm,
-    },
-    options
-  );
+  let { classHash } = await declareIfNot_NotWait({
+    contract: compiledContractSierra,
+    casm: compiledContractCasm,
+  });
 
   let randomSalt = stark.randomAddress();
 
@@ -418,7 +415,7 @@ const executeDeployCalls = async (options?: UniversalDetails) => {
 
   try {
     const executeOptions =
-      networkName === "devnet" ? { ...options, tip: 1000n } : { ...options };
+      networkName === "devnet" ? { ...options, tip: BigInt(1000) } : { ...options };
     let { transaction_hash } = await deployer.execute(
       deployCalls,
       executeOptions

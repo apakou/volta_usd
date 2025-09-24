@@ -1,6 +1,6 @@
 import { RpcProvider, Account, constants } from "starknet";
-import path from "path";
-import dotenv from "dotenv";
+import * as path from "path";
+import * as dotenv from "dotenv";
 import { Networks } from "../types";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
