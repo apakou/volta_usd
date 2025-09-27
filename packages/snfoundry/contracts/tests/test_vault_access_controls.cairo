@@ -261,53 +261,70 @@ fn test_access_control_consistency() {
     // Test multiple pause/unpause cycles with different users trying to interfere
     let mut cycle = 0_u32;
     
-    loop {
-        if cycle >= 2_u32 {
-            break;
-        }
-        
+    while cycle < 2_u32 {
+    
         // Owner pauses
         start_cheat_caller_address(vault.contract_address, owner());
+    
         vault.pause();
+    
         stop_cheat_caller_address(vault.contract_address);
+    
         assert(vault.is_paused(), 'Owner pause works');
-        
+    
         // Try alice to unpause - should fail
         start_cheat_caller_address(vault.contract_address, alice());
+    
         stop_cheat_caller_address(vault.contract_address);
+    
         assert(vault.is_paused(), 'Alice cannot unpause');
-        
+    
         // Try bob to unpause - should fail  
         start_cheat_caller_address(vault.contract_address, bob());
+    
         stop_cheat_caller_address(vault.contract_address);
+    
         assert(vault.is_paused(), 'Bob cannot unpause');
-        
+    
         // Try malicious_user to unpause - should fail
         start_cheat_caller_address(vault.contract_address, malicious_user());
+    
         stop_cheat_caller_address(vault.contract_address);
+    
         assert(vault.is_paused(), 'Malicious user cannot unpause');
-        
+    
         // Owner unpauses
         start_cheat_caller_address(vault.contract_address, owner());
+    
         vault.unpause();
+    
         stop_cheat_caller_address(vault.contract_address);
+    
         assert(!vault.is_paused(), 'Owner unpause works');
-        
+    
         // Try each non-owner user to pause - all should fail
         start_cheat_caller_address(vault.contract_address, alice());
+    
         stop_cheat_caller_address(vault.contract_address);
+    
         assert(!vault.is_paused(), 'Alice cannot pause');
-        
+    
         start_cheat_caller_address(vault.contract_address, bob());
+    
         stop_cheat_caller_address(vault.contract_address);
+    
         assert(!vault.is_paused(), 'Bob cannot pause');
-        
+    
         start_cheat_caller_address(vault.contract_address, malicious_user());
+    
         stop_cheat_caller_address(vault.contract_address);
+    
         assert(!vault.is_paused(), 'Malicious user cannot pause');
-        
+    
         cycle += 1;
-    };
+    
+    }
+;
 }
 
 #[test]

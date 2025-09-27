@@ -1,5 +1,4 @@
 import {
-  deployContract,
   executeDeployCalls,
   exportDeployments,
   deployer,
@@ -7,50 +6,29 @@ import {
   assertRpcNetworkActive,
   assertDeployerSignable,
 } from "./deploy-contract";
-import { green } from "./helpers/colorize-log";
+import { VoltaDeployer } from "./deployment/volta-deployer";
+import { green, red, yellow, blue } from "./helpers/colorize-log";
 
 /**
- * Deploy a contract using the specified parameters.
+ * Deploy Volta Protocol (vUSD stablecoin system)
  *
- * @example (deploy contract with constructorArgs)
- * const deployScript = async (): Promise<void> => {
- *   await deployContract(
- *     {
- *       contract: "YourContract",
- *       contractName: "YourContractExportName",
- *       constructorArgs: {
- *         owner: deployer.address,
- *       },
- *       options: {
- *         maxFee: BigInt(1000000000000)
- *       }
- *     }
- *   );
- * };
- *
- * @example (deploy contract without constructorArgs)
- * const deployScript = async (): Promise<void> => {
- *   await deployContract(
- *     {
- *       contract: "YourContract",
- *       contractName: "YourContractExportName",
- *       options: {
- *         maxFee: BigInt(1000000000000)
- *       }
- *     }
- *   );
- * };
- *
+ * This script deploys the complete Volta Protocol stack:
+ * 1. Oracle (MockOracle for testnet, Pragma for mainnet)
+ * 2. WBTC (MockWBTC for testnet, real WBTC for mainnet)
+ * 3. vUSD Token 
+ * 4. VoltaVault (main contract)
+ * 5. System configuration
  *
  * @returns {Promise<void>}
  */
-const deployScript = async (): Promise<void> => {
-  await deployContract({
-    contract: "YourContract",
-    constructorArgs: {
-      owner: deployer.address,
-    },
-  });
+const deployVoltaProtocol = async (): Promise<void> => {
+  const network = process.env.NETWORK || "sepolia";
+  
+  console.log(blue(`\n🚀 Starting Volta Protocol Deployment on ${network}`));
+  console.log(blue(`📍 Deployer: ${deployer.address}\n`));
+  
+  const voltaDeployer = new VoltaDeployer(network);
+  await voltaDeployer.deployVoltaProtocol();
 };
 
 const main = async (): Promise<void> => {
@@ -59,14 +37,19 @@ const main = async (): Promise<void> => {
 
     await Promise.all([assertRpcNetworkActive(), assertDeployerSignable()]);
 
-    await deployScript();
+    await deployVoltaProtocol();
     await executeDeployCalls();
     exportDeployments();
 
-    console.log(green("All Setup Done!"));
+    console.log(green("\n✅ Volta Protocol Deployment Complete!"));
+    console.log(yellow("\n⚠️  Don't forget to:"));
+    console.log("   1. Set VoltaVault as minter for vUSD token");
+    console.log("   2. Verify contracts on Starkscan");
+    console.log("   3. Test basic functionality");
+    
   } catch (err) {
-    console.log(err);
-    process.exit(1); //exit with error so that non subsequent scripts are run
+    console.error(red(`❌ Deployment failed: ${err}`));
+    process.exit(1);
   }
 };
 

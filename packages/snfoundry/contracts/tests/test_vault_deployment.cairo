@@ -2,7 +2,6 @@ use starknet::contract_address_const;
 use snforge_std::{declare, ContractClassTrait, DeclareResultTrait};
 use contracts::MockOracle::{IMockOracleDispatcher, IMockOracleDispatcherTrait};
 use contracts::VoltaVault::{IVoltaVaultDispatcher, IVoltaVaultDispatcherTrait};
-use contracts::MockWBTC::{IMockWBTCDispatcher, IMockWBTCDispatcherTrait};
 use openzeppelin_token::erc20::{interface::{IERC20Dispatcher, IERC20DispatcherTrait}};
 
 const OWNER: felt252 = 0x12345;
