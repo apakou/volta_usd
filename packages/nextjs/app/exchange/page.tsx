@@ -1,21 +1,14 @@
-import { ConnectedAddress } from "../../components/ConnectedAddress";
-import ExchangeComponent from "../../components/Exchange/ExchangeComponent";
+import ExchangeComponent from "~~/components/Exchange/ExchangeComponent";
 
 const ExchangePage = () => {
   return (
     <div className="min-h-screen bg-volta-dark text-white">
-      {/* Header */}
-      <div className="border-b border-gray-800 p-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-volta-primary">
-            VOLTA Exchange
-          </h1>
-          <ConnectedAddress />
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="max-w-6xl mx-auto p-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Exchange</h1>
+          <p className="text-gray-400">Convert your Bitcoin to VUSD and vice versa</p>
+        </div>
         <ExchangeComponent />
       </div>
     </div>

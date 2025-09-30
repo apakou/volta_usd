@@ -7,6 +7,8 @@ const ExchangeComponent = () => {
   const [outputAmount, setOutputAmount] = useState("");
   const [fromToken, setFromToken] = useState("BTC");
   const [toToken, setToToken] = useState("VUSD");
+  // Mock wallet connection state - replace with actual wallet context
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
 
   const handleSwap = () => {
     setFromToken(toToken);
@@ -34,6 +36,18 @@ const ExchangeComponent = () => {
 
   return (
     <div className="max-w-md mx-auto">
+      {/* Wallet Connection Status */}
+      {!isWalletConnected && (
+        <div className="mb-6 bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 text-center">
+          <div className="flex items-center justify-center space-x-2 text-yellow-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <span className="font-semibold">Connect your wallet to start trading</span>
+          </div>
+        </div>
+      )}
+
       <div className="bg-volta-card rounded-2xl p-6 border border-gray-700">
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">Exchange</h2>
@@ -45,7 +59,9 @@ const ExchangeComponent = () => {
           <div className="bg-volta-darker rounded-xl p-4">
             <div className="flex justify-between items-center mb-2">
               <label className="text-sm text-gray-400">From</label>
-              <div className="text-sm text-gray-400">Balance: 0.00</div>
+              <div className="text-sm text-gray-400">
+                Balance: {isWalletConnected ? "0.00" : "--"}
+              </div>
             </div>
             <div className="flex items-center space-x-3">
               <input
@@ -90,7 +106,9 @@ const ExchangeComponent = () => {
           <div className="bg-volta-darker rounded-xl p-4">
             <div className="flex justify-between items-center mb-2">
               <label className="text-sm text-gray-400">To</label>
-              <div className="text-sm text-gray-400">Balance: 0.00</div>
+              <div className="text-sm text-gray-400">
+                Balance: {isWalletConnected ? "0.00" : "--"}
+              </div>
             </div>
             <div className="flex items-center space-x-3">
               <input
@@ -122,10 +140,12 @@ const ExchangeComponent = () => {
 
           {/* Swap Button */}
           <button
-            disabled={!inputAmount || Number(inputAmount) === 0}
+            disabled={!isWalletConnected || !inputAmount || Number(inputAmount) === 0}
             className="w-full bg-volta-primary hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed py-4 rounded-xl font-semibold text-lg transition-colors"
           >
-            {!inputAmount || Number(inputAmount) === 0
+            {!isWalletConnected
+              ? "Connect Wallet to Trade"
+              : !inputAmount || Number(inputAmount) === 0
               ? "Enter Amount"
               : `Swap ${fromToken} for ${toToken}`}
           </button>

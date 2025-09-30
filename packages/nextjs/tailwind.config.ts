@@ -170,6 +170,10 @@ module.exports = {
 
   theme: {
     extend: {
+      fontFamily: {
+        'satoshi': ['Satoshi', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        'sans': ['Satoshi', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+      },
       colors: {
         volta: {
           primary: "#0090FF",

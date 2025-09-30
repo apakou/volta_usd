@@ -6,47 +6,6 @@ import Link from "next/link";
 const LandingPage = () => {
   return (
     <div className="min-h-screen bg-volta-dark text-white">
-      {/* Navigation */}
-      <nav className="flex items-center justify-between px-8 py-6">
-        <div className="flex items-center space-x-2">
-          <Image
-            src="/volta-logo.png"
-            alt="VOLTA Logo"
-            width={32}
-            height={32}
-            className="w-8 h-8"
-          />
-          <span className="text-xl font-semibold">VOLTA</span>
-        </div>
-
-        <div className="hidden md:flex items-center space-x-8">
-          <a
-            href="#how-it-works"
-            className="text-gray-300 hover:text-white transition-colors"
-          >
-            How it Works
-          </a>
-          <a
-            href="#features"
-            className="text-gray-300 hover:text-white transition-colors"
-          >
-            Features
-          </a>
-          <a
-            href="#about"
-            className="text-gray-300 hover:text-white transition-colors"
-          >
-            About
-          </a>
-          <Link
-            href="/exchange"
-            className="bg-volta-primary hover:bg-blue-600 px-4 py-2 rounded-lg transition-colors"
-          >
-            Launch App
-          </Link>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="px-8 py-20 text-center max-w-6xl mx-auto">
         <h1 className="text-5xl md:text-6xl font-bold mb-6">
