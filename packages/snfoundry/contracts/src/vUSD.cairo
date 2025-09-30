@@ -11,11 +11,11 @@ pub trait IvUSD<TContractState> {
 #[starknet::contract]
 pub mod vUSD {
     use OwnableComponent::InternalTrait;
-    use super::IvUSD;
-    use starknet::ContractAddress;
-    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use openzeppelin_access::ownable::OwnableComponent;
     use openzeppelin_token::erc20::ERC20Component;
+    use starknet::ContractAddress;
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use super::IvUSD;
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
@@ -34,18 +34,17 @@ pub mod vUSD {
             ref self: ERC20Component::ComponentState<ContractState>,
             from: ContractAddress,
             recipient: ContractAddress,
-            amount: u256
+            amount: u256,
         ) {}
 
         fn after_update(
             ref self: ERC20Component::ComponentState<ContractState>,
             from: ContractAddress,
             recipient: ContractAddress,
-            amount: u256
+            amount: u256,
         ) {}
     }
 
-    
 
     #[storage]
     struct Storage {
@@ -75,11 +74,7 @@ pub mod vUSD {
     }
 
     #[constructor]
-    fn constructor(
-        ref self: ContractState,
-        owner: ContractAddress,
-        minter: ContractAddress
-    ) {
+    fn constructor(ref self: ContractState, owner: ContractAddress, minter: ContractAddress) {
         self.erc20.initializer("Volta USD", "vUSD");
         self.ownable.initializer(owner);
         self.minter.write(minter);
@@ -108,7 +103,7 @@ pub mod vUSD {
             self.ownable.assert_only_owner();
             let old_minter = self.minter.read();
             self.minter.write(new_minter);
-            
+
             self.emit(MinterChanged { old_minter, new_minter });
         }
     }

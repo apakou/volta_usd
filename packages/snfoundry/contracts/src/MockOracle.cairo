@@ -6,8 +6,8 @@ pub trait IMockOracle<TContractState> {
 
 #[starknet::contract]
 pub mod MockOracle {
-    use super::IMockOracle;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use super::IMockOracle;
 
     #[storage]
     struct Storage {

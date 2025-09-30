@@ -15,5 +15,4 @@ export const green = (message: string): string =>
   colorize(colors.green, message);
 export const yellow = (message: string): string =>
   colorize(colors.yellow, message);
-export const blue = (message: string): string =>
-  colorize(colors.blue, message);
+export const blue = (message: string): string => colorize(colors.blue, message);

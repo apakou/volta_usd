@@ -17,10 +17,13 @@ function loadCompiledContract(contractName: string) {
     "utf8"
   );
   const casmFile = fs.readFileSync(
-    path.join(contractPath, `contracts_${contractName}.compiled_contract_class.json`),
+    path.join(
+      contractPath,
+      `contracts_${contractName}.compiled_contract_class.json`
+    ),
     "utf8"
   );
-  
+
   return {
     sierra: JSON.parse(sierraFile),
     casm: JSON.parse(casmFile),
@@ -38,14 +41,14 @@ async function deployVoltaVaultToSepolia() {
   }
 
   console.log(`🌐 Connecting to: ${rpcUrl}`);
-  const provider = new RpcProvider({ 
-    nodeUrl: rpcUrl.replace("/rpc/v0_7", "") // Remove version suffix if present
+  const provider = new RpcProvider({
+    nodeUrl: rpcUrl.replace("/rpc/v0_7", ""), // Remove version suffix if present
   });
-  
+
   // Initialize account
   const accountAddress = process.env.ACCOUNT_ADDRESS_SEPOLIA;
   const privateKey = process.env.PRIVATE_KEY_SEPOLIA;
-  
+
   if (!accountAddress || !privateKey) {
     throw new Error("Account address or private key not found in .env file");
   }
@@ -54,7 +57,7 @@ async function deployVoltaVaultToSepolia() {
     provider: provider,
     address: accountAddress,
     signer: privateKey,
-    cairoVersion: "1"
+    cairoVersion: "1",
   });
 
   console.log("🔍 Testing network connectivity...");
@@ -70,16 +73,17 @@ async function deployVoltaVaultToSepolia() {
   // Contract addresses needed for VoltaVault constructor
   // We need to deploy Oracle and MockWBTC first, or use existing ones
   console.log("\n📋 Required contract addresses for VoltaVault:");
-  
+
   // For now, let's deploy the dependencies first
   const deployedAddresses: any = {};
 
   try {
     // 1. Deploy MockOracle first
     console.log("\n1️⃣ Deploying MockOracle...");
-    const { sierra: oracleSierra, casm: oracleCasm } = loadCompiledContract("MockOracle");
+    const { sierra: oracleSierra, casm: oracleCasm } =
+      loadCompiledContract("MockOracle");
     const oracleClassHash = hash.computeSierraContractClassHash(oracleSierra);
-    
+
     let oracleNeedsDeclaration = true;
     try {
       await provider.getClass(oracleClassHash);
@@ -102,7 +106,7 @@ async function deployVoltaVaultToSepolia() {
 
     // Deploy MockOracle
     const oracleConstructorArgs = CallData.compile([
-      "67891000000000" // Initial BTC price (with proper decimals)
+      "67891000000000", // Initial BTC price (with proper decimals)
     ]);
 
     const oracleDeployResponse = await account.deploy({
@@ -112,13 +116,16 @@ async function deployVoltaVaultToSepolia() {
 
     await provider.waitForTransaction(oracleDeployResponse.transaction_hash);
     deployedAddresses.oracle = oracleDeployResponse.contract_address[0];
-    console.log(green(`✅ MockOracle deployed at: ${deployedAddresses.oracle}`));
+    console.log(
+      green(`✅ MockOracle deployed at: ${deployedAddresses.oracle}`)
+    );
 
     // 2. Deploy MockWBTC
     console.log("\n2️⃣ Deploying MockWBTC...");
-    const { sierra: wbtcSierra, casm: wbtcCasm } = loadCompiledContract("MockWBTC");
+    const { sierra: wbtcSierra, casm: wbtcCasm } =
+      loadCompiledContract("MockWBTC");
     const wbtcClassHash = hash.computeSierraContractClassHash(wbtcSierra);
-    
+
     let wbtcNeedsDeclaration = true;
     try {
       await provider.getClass(wbtcClassHash);
@@ -141,7 +148,7 @@ async function deployVoltaVaultToSepolia() {
 
     // Deploy MockWBTC
     const wbtcConstructorArgs = CallData.compile([
-      account.address // Owner
+      account.address, // Owner
     ]);
 
     const wbtcDeployResponse = await account.deploy({
@@ -154,14 +161,15 @@ async function deployVoltaVaultToSepolia() {
     console.log(green(`✅ MockWBTC deployed at: ${deployedAddresses.wbtc}`));
 
     // Use the existing vUSD contract
-    deployedAddresses.vusd = "0xa614fe1528937600e3fd8e9a19a80d08ef11c24af1fd4f91bfd745154a85f4";
+    deployedAddresses.vusd =
+      "0xa614fe1528937600e3fd8e9a19a80d08ef11c24af1fd4f91bfd745154a85f4";
     console.log(green(`✅ Using existing vUSD at: ${deployedAddresses.vusd}`));
 
     console.log("---");
 
     // 3. Now deploy VoltaVault
     console.log("3️⃣ Deploying VoltaVault...");
-    
+
     // Load contract artifacts
     const { sierra, casm } = loadCompiledContract("VoltaVault");
     const classHash = hash.computeSierraContractClassHash(sierra);
@@ -170,7 +178,7 @@ async function deployVoltaVaultToSepolia() {
     // Check if class is already declared
     let finalClassHash = classHash;
     let needsDeclaration = true;
-    
+
     console.log("🔍 Checking if class is already declared...");
     try {
       await provider.getClass(classHash);
@@ -183,25 +191,29 @@ async function deployVoltaVaultToSepolia() {
     // Declare if needed
     if (needsDeclaration) {
       console.log("📝 Declaring VoltaVault contract...");
-      
+
       try {
         const declareResponse = await account.declare({
           contract: sierra,
           casm: casm,
         });
-        
-        console.log(`⏳ Declare transaction: ${declareResponse.transaction_hash}`);
+
+        console.log(
+          `⏳ Declare transaction: ${declareResponse.transaction_hash}`
+        );
         await provider.waitForTransaction(declareResponse.transaction_hash);
         finalClassHash = declareResponse.class_hash;
         console.log(green(`✅ VoltaVault contract declared successfully`));
         console.log(`   Class hash: ${finalClassHash}`);
-        
+
         // Wait between declare and deploy
         console.log("⏳ Waiting 15 seconds before deployment...");
-        await new Promise(resolve => setTimeout(resolve, 15000));
+        await new Promise((resolve) => setTimeout(resolve, 15000));
       } catch (error: any) {
         if (error.message.includes("already been declared")) {
-          console.log(yellow("⚠️ Class was already declared by another transaction"));
+          console.log(
+            yellow("⚠️ Class was already declared by another transaction")
+          );
           finalClassHash = classHash;
         } else {
           throw error;
@@ -210,15 +222,15 @@ async function deployVoltaVaultToSepolia() {
     }
 
     console.log("🚀 Deploying VoltaVault contract...");
-    
+
     // Prepare constructor arguments
     // VoltaVault constructor: (collateral_token: ContractAddress, vusd_token: ContractAddress, oracle: ContractAddress)
     const constructorArgs = CallData.compile([
-      deployedAddresses.wbtc,   // collateral_token (MockWBTC)
-      deployedAddresses.vusd,   // vusd_token
-      deployedAddresses.oracle  // oracle (MockOracle)
+      deployedAddresses.wbtc, // collateral_token (MockWBTC)
+      deployedAddresses.vusd, // vusd_token
+      deployedAddresses.oracle, // oracle (MockOracle)
     ]);
-    
+
     console.log(`🔧 Constructor arguments:`);
     console.log(`   Collateral Token (WBTC): ${deployedAddresses.wbtc}`);
     console.log(`   vUSD Token: ${deployedAddresses.vusd}`);
@@ -232,7 +244,7 @@ async function deployVoltaVaultToSepolia() {
 
     console.log(`⏳ Deploy transaction: ${deployResponse.transaction_hash}`);
     await provider.waitForTransaction(deployResponse.transaction_hash);
-    
+
     const contractAddress = deployResponse.contract_address[0];
     deployedAddresses.vault = contractAddress;
     console.log(green(`✅ VoltaVault deployed successfully!`));
@@ -247,7 +259,7 @@ async function deployVoltaVaultToSepolia() {
         address: deployedAddresses.vusd,
         providerOrAccount: account,
       });
-      
+
       const setMinterTx = await vusdContract.set_minter(contractAddress);
       await provider.waitForTransaction(setMinterTx.transaction_hash);
       console.log(green("✅ VoltaVault set as vUSD minter"));
@@ -256,7 +268,7 @@ async function deployVoltaVaultToSepolia() {
     }
 
     console.log("5️⃣ Verifying deployment...");
-    
+
     // Create contract instance to verify deployment
     const vaultContract = new Contract({
       abi: sierra.abi,
@@ -269,13 +281,15 @@ async function deployVoltaVaultToSepolia() {
       const collateralToken = await vaultContract.call("get_collateral_token");
       const vusdToken = await vaultContract.call("get_vusd_token");
       const oracle = await vaultContract.call("get_oracle");
-      
+
       console.log(green("✅ Contract verification successful:"));
       console.log(`   Collateral Token: ${collateralToken.toString()}`);
       console.log(`   vUSD Token: ${vusdToken.toString()}`);
       console.log(`   Oracle: ${oracle.toString()}`);
     } catch (error: any) {
-      console.log(yellow(`⚠️ Could not verify contract details: ${error.message}`));
+      console.log(
+        yellow(`⚠️ Could not verify contract details: ${error.message}`)
+      );
     }
 
     // Save deployment info
@@ -287,17 +301,17 @@ async function deployVoltaVaultToSepolia() {
         oracle: {
           name: "MockOracle",
           address: deployedAddresses.oracle,
-          classHash: oracleFinalClassHash
+          classHash: oracleFinalClassHash,
         },
         wbtc: {
-          name: "MockWBTC", 
+          name: "MockWBTC",
           address: deployedAddresses.wbtc,
-          classHash: wbtcFinalClassHash
+          classHash: wbtcFinalClassHash,
         },
         vusd: {
           name: "vUSD",
           address: deployedAddresses.vusd,
-          classHash: "existing"
+          classHash: "existing",
         },
         vault: {
           name: "VoltaVault",
@@ -306,22 +320,25 @@ async function deployVoltaVaultToSepolia() {
           constructorArgs: {
             collateral_token: deployedAddresses.wbtc,
             vusd_token: deployedAddresses.vusd,
-            oracle: deployedAddresses.oracle
-          }
-        }
+            oracle: deployedAddresses.oracle,
+          },
+        },
       },
-      deployer: account.address
+      deployer: account.address,
     };
-    
+
     // Create deployments directory if it doesn't exist
     const deploymentsDir = path.join(process.cwd(), "deployments");
     if (!fs.existsSync(deploymentsDir)) {
       fs.mkdirSync(deploymentsDir);
     }
-    
-    const deploymentFile = path.join(deploymentsDir, `voltavault-sepolia-${Date.now()}.json`);
+
+    const deploymentFile = path.join(
+      deploymentsDir,
+      `voltavault-sepolia-${Date.now()}.json`
+    );
     fs.writeFileSync(deploymentFile, JSON.stringify(deploymentData, null, 2));
-    
+
     // Update sepolia-latest.json
     const latestFile = path.join(deploymentsDir, "sepolia-latest.json");
     fs.writeFileSync(latestFile, JSON.stringify(deploymentData, null, 2));
@@ -333,23 +350,26 @@ async function deployVoltaVaultToSepolia() {
     console.log(green(`🪙 MockWBTC:   ${deployedAddresses.wbtc}`));
     console.log(green(`💵 vUSD:       ${deployedAddresses.vusd}`));
     console.log(green(`🏦 VoltaVault: ${deployedAddresses.vault}`));
-    
+
     console.log(blue(`📝 Deployment saved: ${deploymentFile}`));
     console.log(blue("🌐 Network: Starknet Sepolia Testnet"));
-    
+
     console.log(blue("\n🔧 Next Steps:"));
     console.log("1. Verify contracts on Starkscan:");
-    console.log(`   https://sepolia.starkscan.co/contract/${deployedAddresses.vault}`);
+    console.log(
+      `   https://sepolia.starkscan.co/contract/${deployedAddresses.vault}`
+    );
     console.log("2. Update frontend with new contract addresses");
     console.log("3. Test full protocol functionality");
-    
+
     console.log(blue("\n💡 Protocol is now fully deployed and configured!"));
 
     return deployedAddresses;
-
   } catch (error: any) {
     console.log(red(`💥 VoltaVault deployment failed: ${error.message}`));
-    console.log("🔄 You can retry this deployment by running the script again.");
+    console.log(
+      "🔄 You can retry this deployment by running the script again."
+    );
     throw error;
   }
 }
@@ -358,7 +378,9 @@ async function deployVoltaVaultToSepolia() {
 if (require.main === module) {
   deployVoltaVaultToSepolia()
     .then((result) => {
-      console.log(green(`\n✅ Success! VoltaVault deployed at: ${result.vault}`));
+      console.log(
+        green(`\n✅ Success! VoltaVault deployed at: ${result.vault}`)
+      );
       process.exit(0);
     })
     .catch((error) => {

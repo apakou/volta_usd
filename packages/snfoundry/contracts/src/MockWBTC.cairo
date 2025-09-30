@@ -7,9 +7,9 @@ pub trait IMockWBTC<TContractState> {
 
 #[starknet::contract]
 pub mod MockWBTC {
-    use super::IMockWBTC;
-    use starknet::ContractAddress;
     use openzeppelin_token::erc20::ERC20Component;
+    use starknet::ContractAddress;
+    use super::IMockWBTC;
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
@@ -24,14 +24,14 @@ pub mod MockWBTC {
             ref self: ERC20Component::ComponentState<ContractState>,
             from: ContractAddress,
             recipient: ContractAddress,
-            amount: u256
+            amount: u256,
         ) {}
 
         fn after_update(
             ref self: ERC20Component::ComponentState<ContractState>,
             from: ContractAddress,
             recipient: ContractAddress,
-            amount: u256
+            amount: u256,
         ) {}
     }
 
