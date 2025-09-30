@@ -1,25 +1,27 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAccount, useDisconnect } from "@starknet-react/core";
+import { usePersistentWallet } from "../hooks/usePersistentWallet";
 
 const ConnectWallet = () => {
   const router = useRouter();
-  const { address, status } = useAccount();
-  const { disconnect } = useDisconnect();
-
-  const isConnected = status === "connected" && !!address;
+  const { isWalletConnected, address, disconnectWallet } =
+    usePersistentWallet();
 
   const handleAppClick = () => {
     // Redirect to exchange page for wallet connection
     router.push("/exchange");
   };
 
-  const handleDisconnect = () => {
-    disconnect();
+  const handleDisconnect = async () => {
+    try {
+      await disconnectWallet();
+    } catch (error) {
+      console.error("Failed to disconnect wallet:", error);
+    }
   };
 
-  if (isConnected) {
+  if (isWalletConnected) {
     return (
       <div className="flex items-center space-x-3 bg-slate-800/50 border border-slate-700/50 rounded-md px-4 py-2.5">
         <div className="w-2 h-2 bg-green-400 rounded-full"></div>
