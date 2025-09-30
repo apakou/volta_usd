@@ -1,15 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const ConnectWallet = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
+  const router = useRouter();
 
   const handleConnect = () => {
     // Mock wallet connection - replace with actual wallet integration
     setIsConnected(true);
     setWalletAddress("0x1234...5678");
+  };
+
+  const handleAppClick = () => {
+    // Redirect to exchange page for wallet connection
+    router.push("/exchange");
   };
 
   const handleDisconnect = () => {
@@ -36,7 +43,7 @@ const ConnectWallet = () => {
 
   return (
     <button
-      onClick={handleConnect}
+      onClick={handleAppClick}
       className="bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-slate-900 px-5 py-2.5 rounded-md font-satoshi font-semibold text-sm transition-all duration-200 flex items-center space-x-2 shadow-lg"
     >
       <span>App ↗</span>

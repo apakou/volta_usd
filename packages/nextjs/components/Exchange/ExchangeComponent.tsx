@@ -9,6 +9,7 @@ const ExchangeComponent = () => {
   const [toToken, setToToken] = useState("VUSD");
   // Mock wallet connection state - replace with actual wallet context
   const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(true);
 
   const handleSwap = () => {
     setFromToken(toToken);
@@ -34,31 +35,68 @@ const ExchangeComponent = () => {
     setOutputAmount(calculateOutput(value));
   };
 
+  const handleConnectWallet = () => {
+    setIsWalletConnected(true);
+    setShowWalletModal(false);
+  };
+
+  const handleTryWithoutWallet = () => {
+    setShowWalletModal(false);
+  };
+
   return (
-    <div className="max-w-md mx-auto">
-      {/* Wallet Connection Status */}
-      {!isWalletConnected && (
-        <div className="mb-6 bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 text-center">
-          <div className="flex items-center justify-center space-x-2 text-yellow-400">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
-              />
-            </svg>
-            <span className="font-semibold">
-              Connect your wallet to start trading
-            </span>
+    <>
+      {/* Wallet Connection Modal */}
+      {!isWalletConnected && showWalletModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-volta-card rounded-3xl p-8 max-w-md w-full border border-gray-700 shadow-2xl">
+            <div className="text-center">
+              <div className="mb-6">
+                <svg
+                  className="w-20 h-20 mx-auto text-green-400 mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+              </div>
+              
+              <h3 className="text-3xl font-bold text-white mb-4">Welcome to VOLTA</h3>
+              <p className="text-gray-300 mb-8 text-lg">
+                Connect your wallet to start minting VUSD with your Bitcoin collateral and access the full exchange features.
+              </p>
+              
+              <div className="space-y-4">
+                <button
+                  onClick={handleConnectWallet}
+                  className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-slate-900 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg"
+                >
+                  Connect Wallet
+                </button>
+                
+                <button
+                  onClick={handleTryWithoutWallet}
+                  className="w-full border border-gray-600 hover:border-gray-400 text-gray-300 hover:text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-200"
+                >
+                  Continue Without Wallet
+                </button>
+              </div>
+              
+              <p className="text-sm text-gray-400 mt-6">
+                You can explore the interface without connecting, but trading requires a wallet connection.
+              </p>
+            </div>
           </div>
         </div>
       )}
+
+      <div className="max-w-md mx-auto">
 
       <div className="bg-volta-card rounded-2xl p-6 border border-gray-700">
         <div className="mb-6">
@@ -80,8 +118,9 @@ const ExchangeComponent = () => {
                 type="number"
                 value={inputAmount}
                 onChange={(e) => handleInputChange(e.target.value)}
-                placeholder="0.0"
-                className="bg-transparent text-2xl font-semibold flex-1 outline-none"
+                placeholder={isWalletConnected ? "0.0" : "Connect wallet first"}
+                disabled={!isWalletConnected}
+                className="bg-transparent text-2xl font-semibold flex-1 outline-none disabled:text-gray-500 disabled:cursor-not-allowed"
               />
               <div className="flex items-center space-x-2 bg-volta-card px-3 py-2 rounded-lg">
                 <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-xs font-bold">
@@ -152,9 +191,8 @@ const ExchangeComponent = () => {
 
           {/* Swap Button */}
           <button
-            disabled={
-              !isWalletConnected || !inputAmount || Number(inputAmount) === 0
-            }
+            disabled={isWalletConnected && (!inputAmount || Number(inputAmount) === 0)}
+            onClick={() => !isWalletConnected && setShowWalletModal(true)}
             className="w-full bg-volta-primary hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed py-4 rounded-xl font-semibold text-lg transition-colors"
           >
             {!isWalletConnected
@@ -194,6 +232,7 @@ const ExchangeComponent = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
