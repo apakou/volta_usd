@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAccount, useConnect, useDisconnect } from "@starknet-react/core";
+import { useVoltaVault } from "../../hooks/useVoltaVault";
 
 const ExchangeComponent = () => {
   const [inputAmount, setInputAmount] = useState("");
@@ -13,11 +14,23 @@ const ExchangeComponent = () => {
   const { address, status } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
-
+  
+  // VoltaVault contract integration
+  const {
+    depositWbtcMintVusd,
+    burnVusdWithdrawWbtc,
+    calculateVusdFromWbtc,
+    calculateWbtcFromVusd,
+    getBtcPrice,
+    getUserCollateral,
+    isLoading: vaultLoading,
+    error: vaultError
+  } = useVoltaVault();
+  
   const [showWalletModal, setShowWalletModal] = useState(false);
-  const isWalletConnected = status === "connected" && !!address;
-
-  // Show wallet modal on component mount if not connected
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [btcPrice, setBtcPrice] = useState<number>(0);
+  const isWalletConnected = status === "connected" && !!address;  // Show wallet modal on component mount if not connected
   useEffect(() => {
     if (!isWalletConnected) {
       setShowWalletModal(true);
@@ -31,22 +44,46 @@ const ExchangeComponent = () => {
     setOutputAmount(inputAmount);
   };
 
-  const calculateOutput = (input: string) => {
+  const calculateOutput = async (input: string) => {
     if (!input || isNaN(Number(input))) return "";
-    const inputNum = Number(input);
-    if (fromToken === "BTC") {
-      // Assume 1 BTC = 43000 VUSD for demo
-      return (inputNum * 43000).toFixed(2);
-    } else {
-      // Assume 1 VUSD = 0.0000232 BTC for demo
-      return (inputNum / 43000).toFixed(8);
+    
+    try {
+      if (fromToken === "BTC") {
+        // Calculate VUSD from WBTC using VoltaVault
+        const vusdAmount = await calculateVusdFromWbtc(input);
+        return (vusdAmount / 1e18).toFixed(2); // Convert from wei to readable format
+      } else {
+        // Calculate WBTC from VUSD using VoltaVault
+        const wbtcAmount = await calculateWbtcFromVusd(input);
+        return (wbtcAmount / 1e8).toFixed(8); // Convert from satoshi to BTC
+      }
+    } catch (error) {
+      console.error("Error calculating output:", error);
+      return "";
     }
   };
 
-  const handleInputChange = (value: string) => {
+  const handleInputChange = async (value: string) => {
     setInputAmount(value);
-    setOutputAmount(calculateOutput(value));
+    const output = await calculateOutput(value);
+    setOutputAmount(output);
   };
+
+  // Load BTC price on component mount
+  useEffect(() => {
+    const loadBtcPrice = async () => {
+      try {
+        const price = await getBtcPrice();
+        setBtcPrice(price / 1e8); // Convert from wei to USD
+      } catch (error) {
+        console.error("Error loading BTC price:", error);
+      }
+    };
+
+    if (isWalletConnected) {
+      loadBtcPrice();
+    }
+  }, [isWalletConnected, getBtcPrice]);
 
   const [showWalletSelection, setShowWalletSelection] = useState(false);
 
@@ -67,6 +104,35 @@ const ExchangeComponent = () => {
 
   const handleDisconnectWallet = () => {
     disconnect();
+  };
+
+  const handleExecuteExchange = async () => {
+    if (!isWalletConnected || !inputAmount) {
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      
+      if (fromToken === "BTC") {
+        // Deposit WBTC and mint VUSD
+        const wbtcAmountWei = (parseFloat(inputAmount) * 1e8).toString(); // Convert to satoshi
+        await depositWbtcMintVusd(wbtcAmountWei);
+      } else {
+        // Burn VUSD and withdraw WBTC
+        const vusdAmountWei = (parseFloat(inputAmount) * 1e18).toString(); // Convert to wei
+        await burnVusdWithdrawWbtc(vusdAmountWei);
+      }
+
+      // Reset form after successful transaction
+      setInputAmount("");
+      setOutputAmount("");
+      
+    } catch (error) {
+      console.error("Exchange transaction failed:", error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -450,30 +516,57 @@ const ExchangeComponent = () => {
               </div>
             </div>
 
-            {/* Exchange Rate */}
-            {inputAmount && outputAmount && (
-              <div className="bg-volta-darker rounded-xl p-3">
-                <div className="text-sm text-gray-400 mb-1">Exchange Rate</div>
-                <div className="text-sm">
-                  1 {fromToken} = {fromToken === "BTC" ? "43,000" : "0.0000232"}{" "}
-                  {toToken}
-                </div>
+            {/* Exchange Rate & BTC Price */}
+            {(inputAmount && outputAmount) || btcPrice > 0 && (
+              <div className="bg-volta-darker rounded-xl p-3 space-y-2">
+                {btcPrice > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-400">BTC Price</span>
+                    <span className="text-sm font-medium text-green-400">${btcPrice.toLocaleString()}</span>
+                  </div>
+                )}
+                {inputAmount && outputAmount && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-400">Exchange Rate</span>
+                    <span className="text-sm">
+                      1 {fromToken} = {fromToken === "BTC" ? btcPrice.toLocaleString() : (1/btcPrice).toFixed(8)} {toToken}
+                    </span>
+                  </div>
+                )}
+                {vaultError && (
+                  <div className="text-xs text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-2">
+                    {vaultError}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Swap Button */}
+            {/* Exchange Button */}
             <button
               disabled={
-                isWalletConnected && (!inputAmount || Number(inputAmount) === 0)
+                !isWalletConnected || 
+                (!inputAmount || Number(inputAmount) === 0) ||
+                isProcessing ||
+                vaultLoading
               }
-              onClick={() => !isWalletConnected && setShowWalletModal(true)}
-              className="w-full bg-volta-primary hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed py-4 rounded-xl font-semibold text-lg transition-colors"
+              onClick={isWalletConnected ? handleExecuteExchange : () => setShowWalletModal(true)}
+              className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-slate-900 py-4 rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-2"
             >
-              {!isWalletConnected
-                ? "Connect Wallet to Trade"
-                : !inputAmount || Number(inputAmount) === 0
-                  ? "Enter Amount"
-                  : `Swap ${fromToken} for ${toToken}`}
+              {isProcessing || vaultLoading ? (
+                <>
+                  <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Processing...</span>
+                </>
+              ) : !isWalletConnected ? (
+                <span>Connect Wallet to Trade</span>
+              ) : !inputAmount || Number(inputAmount) === 0 ? (
+                <span>Enter Amount</span>
+              ) : (
+                <span>{fromToken === "BTC" ? "Deposit & Mint" : "Burn & Withdraw"} {fromToken === "BTC" ? "VUSD" : "WBTC"}</span>
+              )}
             </button>
 
             {/* Transaction Details */}
