@@ -11,7 +11,7 @@ module.exports = {
   themes: [
     {
       light: {
-        primary: "#93BBFB",
+        primary: "#0090FF",
         "primary-content": "#2A3655",
         secondary: "#8B45FD",
         "secondary-content": "#7800FF",
@@ -89,7 +89,7 @@ module.exports = {
     },
     {
       dark: {
-        primary: "#212638",
+        primary: "#0090FF",
         "primary-content": "#DAE8FF",
         secondary: "#8b45fd",
         "secondary-content": "#0FF",
@@ -170,6 +170,14 @@ module.exports = {
 
   theme: {
     extend: {
+      colors: {
+        volta: {
+          primary: "#0090FF",
+          dark: "#1a1b23",
+          darker: "#151621",
+          card: "#252632",
+        },
+      },
       boxShadow: {
         center: "0 0 12px -2px rgb(0 0 0 / 0.05)",
       },
@@ -185,6 +193,8 @@ module.exports = {
           "linear-gradient(180deg, #3457D1 0%, #8A45FC 100%)",
         "gradient-icon":
           "var(--gradient, linear-gradient(90deg, #42D2F1 0%, #B248DD 100%))",
+        "volta-gradient":
+          "linear-gradient(135deg, #0090FF 0%, #00d4aa 100%)",
       },
     },
   },
