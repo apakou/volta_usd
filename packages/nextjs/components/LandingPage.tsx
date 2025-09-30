@@ -5,75 +5,75 @@ import Link from "next/link";
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen bg-volta-dark text-white">
+    <div className="bg-volta-dark text-white">
       {/* Hero Section */}
-      <section className="px-8 py-20 text-center max-w-6xl mx-auto">
-        <h1 className="text-5xl md:text-6xl font-bold mb-6">
-          Seamless Bitcoin to <br />
-          <span className="text-volta-primary">Lightning Payments</span>
-        </h1>
-        <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
-          Convert your Bitcoin to VUSD tokens and unlock instant, low-cost
-          Lightning Network payments. Bridge the gap between Bitcoin holding and
-          everyday digital transactions.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Link
-            href="/exchange"
-            className="bg-volta-primary hover:bg-blue-600 px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
-          >
-            Start Trading
-          </Link>
-          <button className="border border-gray-600 hover:border-gray-400 px-8 py-4 rounded-lg text-lg font-semibold transition-colors">
-            Learn More
-          </button>
+      <section className="min-h-screen flex flex-col justify-center px-8 text-center">
+        <div className="max-w-6xl mx-auto w-full">
+          <h1 className="text-5xl md:text-7xl font-bold mb-8">
+            Bitcoin-Collateralized <br />
+            <span className="text-volta-primary">Stablecoin Protocol</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-4xl mx-auto">
+            Mint VUSD, where <strong className="text-green-400">1 VUSD = 1 USD</strong> always. A Bitcoin-backed stablecoin that unlocks the purchasing power of your Bitcoin while maintaining exposure to its upside potential. Enhanced with Lightning Network integration for instant payments.
+          </p>
         </div>
 
-        {/* Hero Cards Preview */}
-        <div className="grid md:grid-cols-3 gap-6 mt-16">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+            <Link
+              href="/exchange"
+              className="bg-volta-primary hover:bg-blue-600 px-10 py-5 rounded-lg text-xl font-semibold transition-colors shadow-lg"
+            >
+              Mint VUSD
+            </Link>
+            <button className="border-2 border-gray-600 hover:border-gray-400 px-10 py-5 rounded-lg text-xl font-semibold transition-colors">
+              Learn Protocol
+            </button>
+          </div>
+
+          {/* Hero Cards Preview */}
+          <div className="grid md:grid-cols-3 gap-8">
           <div className="bg-volta-card rounded-2xl p-6 border border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Exchange</h3>
+              <h3 className="text-lg font-semibold">Collateral</h3>
+              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+            </div>
+            <div className="text-left">
+              <div className="text-sm text-gray-400 mb-1">BTC Deposited</div>
+              <div className="text-2xl font-bold text-orange-400">
+                1.5 BTC
+              </div>
+              <div className="text-sm text-gray-400">≈ $150k Collateral</div>
+            </div>
+          </div>
+
+          <div className="bg-volta-card rounded-2xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">VUSD Minted</h3>
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
             <div className="text-left">
-              <div className="text-sm text-gray-400 mb-1">BTC → VUSD</div>
-              <div className="text-2xl font-bold text-green-400">
-                0.00234 BTC
+              <div className="text-sm text-gray-400 mb-1">
+                Stablecoin Balance
               </div>
-              <div className="text-sm text-gray-400">≈ $100.45 VUSD</div>
+              <div className="text-2xl font-bold text-green-400">
+                50,000 VUSD
+              </div>
+              <div className="text-sm text-gray-400">= $50,000 USD (1:1)</div>
             </div>
           </div>
 
           <div className="bg-volta-card rounded-2xl p-6 border border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Lightning</h3>
+              <h3 className="text-lg font-semibold">Lightning Ready</h3>
               <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
             </div>
             <div className="text-left">
-              <div className="text-sm text-gray-400 mb-1">
-                Lightning Payment
-              </div>
+              <div className="text-sm text-gray-400 mb-1">Payment Network</div>
               <div className="text-2xl font-bold text-yellow-400">
-                ⚡ Instant
-              </div>
-              <div className="text-sm text-gray-400">Network Fee: 0.001%</div>
-            </div>
-          </div>
-
-          <div className="bg-volta-card rounded-2xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Balance</h3>
-              <div className="w-3 h-3 bg-volta-primary rounded-full"></div>
-            </div>
-            <div className="text-left">
-              <div className="text-sm text-gray-400 mb-1">VUSD Balance</div>
-              <div className="text-2xl font-bold text-volta-primary">
-                $1,234.56
+                ⚡ Active
               </div>
               <div className="text-sm text-gray-400">
-                Available for payments
+                Instant Payments
               </div>
             </div>
           </div>
@@ -84,20 +84,20 @@ const LandingPage = () => {
       <section id="how-it-works" className="px-8 py-20 bg-volta-darker">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">How It Works</h2>
+            <h2 className="text-4xl font-bold mb-4">How VUSD Works</h2>
             <p className="text-xl text-gray-300">
-              Simple steps to convert your Bitcoin to Lightning-compatible VUSD
+              Create a Bitcoin-backed stablecoin that maintains $1 parity while preserving your Bitcoin exposure
             </p>
           </div>
 
           <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-volta-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold">1</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Connect Wallet</h3>
+              <h3 className="text-xl font-semibold mb-2">Deposit Bitcoin</h3>
               <p className="text-gray-400">
-                Connect your Bitcoin wallet to the VOLTA protocol
+                Lock your Bitcoin as collateral in VOLTA's secure smart contract vault
               </p>
             </div>
 
@@ -105,29 +105,29 @@ const LandingPage = () => {
               <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold">2</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Deposit BTC</h3>
+              <h3 className="text-xl font-semibold mb-2">Mint VUSD</h3>
               <p className="text-gray-400">
-                Securely deposit your Bitcoin into the protocol vault
+                Generate VUSD stablecoins where 1 VUSD = 1 USD, backed by Bitcoin at 150% collateral ratio
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-volta-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold">3</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Spend & Save</h3>
+              <p className="text-gray-400">
+                Use VUSD (always 1:1 with USD) for stable payments, DeFi, or hold while Bitcoin appreciates
               </p>
             </div>
 
             <div className="text-center">
               <div className="w-16 h-16 bg-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold">3</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Mint VUSD</h3>
-              <p className="text-gray-400">
-                Receive VUSD tokens backed by your Bitcoin collateral
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold">4</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Lightning Pay</h3>
+              <h3 className="text-xl font-semibold mb-2">Lightning Boost</h3>
               <p className="text-gray-400">
-                Use VUSD for instant Lightning Network payments
+                Optional: Enable instant Lightning payments for near-zero fees worldwide
               </p>
             </div>
           </div>
@@ -138,16 +138,15 @@ const LandingPage = () => {
       <section id="features" className="px-8 py-20">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">VOLTA Features</h2>
+            <h2 className="text-4xl font-bold mb-4">Why Choose VUSD</h2>
             <p className="text-xl text-gray-300">
-              Discover all the features that make Lightning payments accessible
-              and efficient
+              The first Bitcoin-collateralized stablecoin with Lightning Network integration
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-volta-card rounded-2xl p-8 border border-gray-700">
-              <div className="w-12 h-12 bg-volta-primary rounded-xl flex items-center justify-center mb-4">
+              <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center mb-4">
                 <svg
                   className="w-6 h-6"
                   fill="currentColor"
@@ -160,10 +159,9 @@ const LandingPage = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Instant Conversion</h3>
+              <h3 className="text-xl font-semibold mb-2">Bitcoin-Backed Stability</h3>
               <p className="text-gray-400">
-                Convert BTC to VUSD instantly with real-time exchange rates and
-                minimal slippage
+                VUSD maintains strict 1:1 USD parity through over-collateralization with Bitcoin, combining dollar stability with Bitcoin upside exposure
               </p>
             </div>
 
@@ -181,10 +179,9 @@ const LandingPage = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Secure & Audited</h3>
+              <h3 className="text-xl font-semibold mb-2">Self-Sovereign Finance</h3>
               <p className="text-gray-400">
-                Built on battle-tested smart contracts with comprehensive
-                security audits
+                Maintain full control of your assets with non-custodial smart contracts and transparent on-chain operations
               </p>
             </div>
 
@@ -198,10 +195,9 @@ const LandingPage = () => {
                   <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Lightning Fast</h3>
+              <h3 className="text-xl font-semibold mb-2">Lightning Integration</h3>
               <p className="text-gray-400">
-                Leverage Lightning Network for near-instant, low-cost
-                transactions worldwide
+                Optional Lightning Network integration enables instant global payments with near-zero fees
               </p>
             </div>
 
@@ -266,8 +262,35 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* 1:1 Parity Section */}
       <section className="px-8 py-20 bg-volta-darker">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="bg-gradient-to-r from-green-500/10 to-volta-primary/10 rounded-3xl p-12 border border-green-500/20">
+            <div className="text-6xl font-bold text-green-400 mb-4">1 VUSD = 1 USD</div>
+            <h2 className="text-3xl font-bold mb-6">Always. Guaranteed.</h2>
+            <p className="text-xl text-gray-300 mb-8">
+              VUSD maintains perfect 1:1 parity with the US Dollar through algorithmic stabilization and Bitcoin over-collateralization. Your purchasing power remains constant while your Bitcoin collateral can appreciate.
+            </p>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-volta-card/50 rounded-xl p-6">
+                <div className="text-2xl font-bold text-green-400 mb-2">150%+</div>
+                <div className="text-sm text-gray-400">Collateral Ratio</div>
+              </div>
+              <div className="bg-volta-card/50 rounded-xl p-6">
+                <div className="text-2xl font-bold text-volta-primary mb-2">100%</div>
+                <div className="text-sm text-gray-400">USD Parity Maintained</div>
+              </div>
+              <div className="bg-volta-card/50 rounded-xl p-6">
+                <div className="text-2xl font-bold text-yellow-400 mb-2">24/7</div>
+                <div className="text-sm text-gray-400">Price Stability</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="px-8 py-20">
         <div className="max-w-4xl mx-auto text-center">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
