@@ -5,7 +5,8 @@ import { ThemeProvider } from "~~/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "VOLTA - Bitcoin to Lightning Payments",
-  description: "Convert your Bitcoin to VUSD tokens and unlock instant, low-cost Lightning Network payments",
+  description:
+    "Convert your Bitcoin to VUSD tokens and unlock instant, low-cost Lightning Network payments",
   icons: "/volta-logo.png",
 };
 

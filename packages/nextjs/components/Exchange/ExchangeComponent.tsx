@@ -40,10 +40,22 @@ const ExchangeComponent = () => {
       {!isWalletConnected && (
         <div className="mb-6 bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 text-center">
           <div className="flex items-center justify-center space-x-2 text-yellow-400">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
             </svg>
-            <span className="font-semibold">Connect your wallet to start trading</span>
+            <span className="font-semibold">
+              Connect your wallet to start trading
+            </span>
           </div>
         </div>
       )}
@@ -140,14 +152,16 @@ const ExchangeComponent = () => {
 
           {/* Swap Button */}
           <button
-            disabled={!isWalletConnected || !inputAmount || Number(inputAmount) === 0}
+            disabled={
+              !isWalletConnected || !inputAmount || Number(inputAmount) === 0
+            }
             className="w-full bg-volta-primary hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed py-4 rounded-xl font-semibold text-lg transition-colors"
           >
             {!isWalletConnected
               ? "Connect Wallet to Trade"
               : !inputAmount || Number(inputAmount) === 0
-              ? "Enter Amount"
-              : `Swap ${fromToken} for ${toToken}`}
+                ? "Enter Amount"
+                : `Swap ${fromToken} for ${toToken}`}
           </button>
 
           {/* Transaction Details */}

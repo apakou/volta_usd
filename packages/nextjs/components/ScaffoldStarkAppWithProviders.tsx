@@ -11,7 +11,7 @@ import { useNativeCurrencyPrice } from "~~/hooks/scaffold-stark/useNativeCurrenc
 
 const ScaffoldStarkApp = ({ children }: { children: React.ReactNode }) => {
   useNativeCurrencyPrice();
-  
+
   return (
     <>
       <div className="flex relative flex-col min-h-screen bg-volta-dark">
