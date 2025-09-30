@@ -11,7 +11,10 @@ const LightningComponent = () => {
 
   const handleSendPayment = () => {
     // Placeholder for send payment functionality
-    console.log("Sending payment:", { amount: sendAmount, invoice: lightningInvoice });
+    console.log("Sending payment:", {
+      amount: sendAmount,
+      invoice: lightningInvoice,
+    });
   };
 
   const handleGenerateInvoice = () => {
@@ -27,7 +30,9 @@ const LightningComponent = () => {
       <div className="bg-volta-card rounded-2xl p-6 border border-gray-700">
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">Lightning Payments</h2>
-          <p className="text-gray-400">Send and receive instant Lightning Network payments with VUSD</p>
+          <p className="text-gray-400">
+            Send and receive instant Lightning Network payments with VUSD
+          </p>
         </div>
 
         {/* Tab Navigation */}
@@ -58,7 +63,9 @@ const LightningComponent = () => {
         {activeTab === "send" && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Amount (VUSD)</label>
+              <label className="block text-sm text-gray-400 mb-2">
+                Amount (VUSD)
+              </label>
               <div className="bg-volta-darker rounded-xl p-4">
                 <input
                   type="number"
@@ -74,7 +81,9 @@ const LightningComponent = () => {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Lightning Invoice</label>
+              <label className="block text-sm text-gray-400 mb-2">
+                Lightning Invoice
+              </label>
               <textarea
                 value={lightningInvoice}
                 onChange={(e) => setLightningInvoice(e.target.value)}
@@ -92,7 +101,10 @@ const LightningComponent = () => {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Total</span>
                 <span className="font-semibold">
-                  {sendAmount ? (Number(sendAmount) + 0.001).toFixed(3) : "0.000"} VUSD
+                  {sendAmount
+                    ? (Number(sendAmount) + 0.001).toFixed(3)
+                    : "0.000"}{" "}
+                  VUSD
                 </span>
               </div>
             </div>
@@ -111,7 +123,9 @@ const LightningComponent = () => {
         {activeTab === "receive" && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Amount (VUSD)</label>
+              <label className="block text-sm text-gray-400 mb-2">
+                Amount (VUSD)
+              </label>
               <div className="bg-volta-darker rounded-xl p-4">
                 <input
                   type="number"
@@ -136,13 +150,17 @@ const LightningComponent = () => {
 
             {generatedInvoice && (
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Generated Lightning Invoice</label>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Generated Lightning Invoice
+                </label>
                 <div className="bg-volta-darker rounded-xl p-4">
                   <div className="text-sm font-mono break-all mb-3">
                     {generatedInvoice}
                   </div>
                   <button
-                    onClick={() => navigator.clipboard.writeText(generatedInvoice)}
+                    onClick={() =>
+                      navigator.clipboard.writeText(generatedInvoice)
+                    }
                     className="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm transition-colors"
                   >
                     Copy to Clipboard
@@ -165,7 +183,9 @@ const LightningComponent = () => {
             <div className="text-sm text-gray-400">Transaction Speed</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-400 mb-1">~$0.001</div>
+            <div className="text-2xl font-bold text-yellow-400 mb-1">
+              ~$0.001
+            </div>
             <div className="text-sm text-gray-400">Network Fee</div>
           </div>
           <div className="text-center">
@@ -177,7 +197,9 @@ const LightningComponent = () => {
 
       {/* Recent Lightning Transactions */}
       <div className="mt-8 bg-volta-card rounded-2xl p-6 border border-gray-700">
-        <h3 className="text-lg font-semibold mb-4">Recent Lightning Transactions</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          Recent Lightning Transactions
+        </h3>
         <div className="space-y-3">
           <div className="text-center text-gray-400 py-8">
             No recent Lightning transactions

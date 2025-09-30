@@ -7,7 +7,9 @@ const LightningPage = () => {
       {/* Header */}
       <div className="border-b border-gray-800 p-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-volta-primary">VOLTA Lightning</h1>
+          <h1 className="text-2xl font-bold text-volta-primary">
+            VOLTA Lightning
+          </h1>
           <ConnectedAddress />
         </div>
       </div>
