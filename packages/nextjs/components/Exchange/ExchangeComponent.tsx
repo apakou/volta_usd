@@ -14,7 +14,7 @@ const ExchangeComponent = () => {
   const { address, status } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
-  
+
   // VoltaVault contract integration
   const {
     depositWbtcMintVusd,
@@ -24,13 +24,13 @@ const ExchangeComponent = () => {
     getBtcPrice,
     getUserCollateral,
     isLoading: vaultLoading,
-    error: vaultError
+    error: vaultError,
   } = useVoltaVault();
-  
+
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [btcPrice, setBtcPrice] = useState<number>(0);
-  const isWalletConnected = status === "connected" && !!address;  // Show wallet modal on component mount if not connected
+  const isWalletConnected = status === "connected" && !!address; // Show wallet modal on component mount if not connected
   useEffect(() => {
     if (!isWalletConnected) {
       setShowWalletModal(true);
@@ -46,7 +46,7 @@ const ExchangeComponent = () => {
 
   const calculateOutput = async (input: string) => {
     if (!input || isNaN(Number(input))) return "";
-    
+
     try {
       if (fromToken === "BTC") {
         // Calculate VUSD from WBTC using VoltaVault
@@ -113,7 +113,7 @@ const ExchangeComponent = () => {
 
     try {
       setIsProcessing(true);
-      
+
       if (fromToken === "BTC") {
         // Deposit WBTC and mint VUSD
         const wbtcAmountWei = (parseFloat(inputAmount) * 1e8).toString(); // Convert to satoshi
@@ -127,7 +127,6 @@ const ExchangeComponent = () => {
       // Reset form after successful transaction
       setInputAmount("");
       setOutputAmount("");
-      
     } catch (error) {
       console.error("Exchange transaction failed:", error);
     } finally {
@@ -517,46 +516,75 @@ const ExchangeComponent = () => {
             </div>
 
             {/* Exchange Rate & BTC Price */}
-            {(inputAmount && outputAmount) || btcPrice > 0 && (
-              <div className="bg-volta-darker rounded-xl p-3 space-y-2">
-                {btcPrice > 0 && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-400">BTC Price</span>
-                    <span className="text-sm font-medium text-green-400">${btcPrice.toLocaleString()}</span>
-                  </div>
-                )}
-                {inputAmount && outputAmount && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-400">Exchange Rate</span>
-                    <span className="text-sm">
-                      1 {fromToken} = {fromToken === "BTC" ? btcPrice.toLocaleString() : (1/btcPrice).toFixed(8)} {toToken}
-                    </span>
-                  </div>
-                )}
-                {vaultError && (
-                  <div className="text-xs text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-2">
-                    {vaultError}
-                  </div>
-                )}
-              </div>
-            )}
+            {(inputAmount && outputAmount) ||
+              (btcPrice > 0 && (
+                <div className="bg-volta-darker rounded-xl p-3 space-y-2">
+                  {btcPrice > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-400">BTC Price</span>
+                      <span className="text-sm font-medium text-green-400">
+                        ${btcPrice.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                  {inputAmount && outputAmount && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-400">
+                        Exchange Rate
+                      </span>
+                      <span className="text-sm">
+                        1 {fromToken} ={" "}
+                        {fromToken === "BTC"
+                          ? btcPrice.toLocaleString()
+                          : (1 / btcPrice).toFixed(8)}{" "}
+                        {toToken}
+                      </span>
+                    </div>
+                  )}
+                  {vaultError && (
+                    <div className="text-xs text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-2">
+                      {vaultError}
+                    </div>
+                  )}
+                </div>
+              ))}
 
             {/* Exchange Button */}
             <button
               disabled={
-                !isWalletConnected || 
-                (!inputAmount || Number(inputAmount) === 0) ||
+                !isWalletConnected ||
+                !inputAmount ||
+                Number(inputAmount) === 0 ||
                 isProcessing ||
                 vaultLoading
               }
-              onClick={isWalletConnected ? handleExecuteExchange : () => setShowWalletModal(true)}
+              onClick={
+                isWalletConnected
+                  ? handleExecuteExchange
+                  : () => setShowWalletModal(true)
+              }
               className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-slate-900 py-4 rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-2"
             >
               {isProcessing || vaultLoading ? (
                 <>
-                  <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   <span>Processing...</span>
                 </>
@@ -565,7 +593,10 @@ const ExchangeComponent = () => {
               ) : !inputAmount || Number(inputAmount) === 0 ? (
                 <span>Enter Amount</span>
               ) : (
-                <span>{fromToken === "BTC" ? "Deposit & Mint" : "Burn & Withdraw"} {fromToken === "BTC" ? "VUSD" : "WBTC"}</span>
+                <span>
+                  {fromToken === "BTC" ? "Deposit & Mint" : "Burn & Withdraw"}{" "}
+                  {fromToken === "BTC" ? "VUSD" : "WBTC"}
+                </span>
               )}
             </button>
 
