@@ -40,7 +40,7 @@ const ExchangeComponent = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [btcPrice, setBtcPrice] = useState<number>(0);
   const [notification, setNotification] = useState<{
-    type: 'success' | 'error';
+    type: "success" | "error";
     title: string;
     message: string;
     txHash?: string;
@@ -152,41 +152,41 @@ const ExchangeComponent = () => {
         // Deposit WBTC and mint VUSD
         const wbtcAmountWei = (parseFloat(inputAmount) * 1e8).toString(); // Convert to satoshi
         result = await depositWbtcMintVusd(wbtcAmountWei, outputAmount);
-        
+
         // Show success notification for minting
         setNotification({
-          type: 'success',
-          title: 'VUSD Minted Successfully!',
+          type: "success",
+          title: "VUSD Minted Successfully!",
           message: `Successfully minted ${outputAmount} VUSD with ${inputAmount} BTC collateral`,
-          txHash: result?.transaction_hash
+          txHash: result?.transaction_hash,
         });
       } else {
         // Burn VUSD and withdraw WBTC
         const vusdAmountWei = (parseFloat(inputAmount) * 1e18).toString(); // Convert to wei
         result = await burnVusdWithdrawWbtc(vusdAmountWei, outputAmount);
-        
+
         // Show success notification for burning
         setNotification({
-          type: 'success',
-          title: 'WBTC Withdrawn Successfully!',
+          type: "success",
+          title: "WBTC Withdrawn Successfully!",
           message: `Successfully burned ${inputAmount} VUSD and withdrew ${outputAmount} WBTC`,
-          txHash: result?.transaction_hash
+          txHash: result?.transaction_hash,
         });
       }
 
       // Reset form after successful transaction
       setInputAmount("");
       setOutputAmount("");
-      
     } catch (error) {
       console.error("Exchange transaction failed:", error);
-      
+
       // Show error notification
-      const errorMessage = error instanceof Error ? error.message : "Transaction failed";
+      const errorMessage =
+        error instanceof Error ? error.message : "Transaction failed";
       setNotification({
-        type: 'error',
-        title: 'Transaction Failed',
-        message: `${fromToken === "BTC" ? "Minting" : "Burning"} transaction failed: ${errorMessage}`
+        type: "error",
+        title: "Transaction Failed",
+        message: `${fromToken === "BTC" ? "Minting" : "Burning"} transaction failed: ${errorMessage}`,
       });
     } finally {
       setIsProcessing(false);
@@ -473,11 +473,22 @@ const ExchangeComponent = () => {
               </p>
               <div className="mt-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
                 <div className="flex items-start space-x-2">
-                  <svg className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   <p className="text-xs text-green-300">
-                    Your wallet will stay connected across browser sessions until you manually disconnect.
+                    Your wallet will stay connected across browser sessions
+                    until you manually disconnect.
                   </p>
                 </div>
               </div>
@@ -489,27 +500,53 @@ const ExchangeComponent = () => {
       {/* Success/Error Notification */}
       {notification && (
         <div className="fixed top-4 right-4 z-50 animate-fade-in">
-          <div className={`max-w-md p-4 rounded-xl shadow-2xl border ${
-            notification.type === 'success' 
-              ? 'bg-green-900/90 border-green-500/50 text-green-100' 
-              : 'bg-red-900/90 border-red-500/50 text-red-100'
-          } backdrop-blur-sm`}>
+          <div
+            className={`max-w-md p-4 rounded-xl shadow-2xl border ${
+              notification.type === "success"
+                ? "bg-green-900/90 border-green-500/50 text-green-100"
+                : "bg-red-900/90 border-red-500/50 text-red-100"
+            } backdrop-blur-sm`}
+          >
             <div className="flex items-start space-x-3">
               {/* Icon */}
-              <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-                notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-              }`}>
-                {notification.type === 'success' ? (
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <div
+                className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                  notification.type === "success"
+                    ? "bg-green-500"
+                    : "bg-red-500"
+                }`}
+              >
+                {notification.type === "success" ? (
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 )}
               </div>
-              
+
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <h4 className="font-semibold text-sm mb-1">
@@ -526,20 +563,40 @@ const ExchangeComponent = () => {
                     className="inline-flex items-center space-x-1 text-xs font-medium hover:underline opacity-80 hover:opacity-100 transition-opacity"
                   >
                     <span>View on Explorer</span>
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
                     </svg>
                   </a>
                 )}
               </div>
-              
+
               {/* Close Button */}
               <button
                 onClick={() => setNotification(null)}
                 className="flex-shrink-0 p-1 hover:bg-white/10 rounded-lg transition-colors"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -779,50 +836,81 @@ const ExchangeComponent = () => {
                   >
                     <div className="flex items-center space-x-4">
                       {/* Transaction Icon */}
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        tx.type === 'mint' 
-                          ? 'bg-green-900/30 border border-green-500/30' 
-                          : 'bg-orange-900/30 border border-orange-500/30'
-                      }`}>
-                        {tx.type === 'mint' ? (
-                          <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          tx.type === "mint"
+                            ? "bg-green-900/30 border border-green-500/30"
+                            : "bg-orange-900/30 border border-orange-500/30"
+                        }`}
+                      >
+                        {tx.type === "mint" ? (
+                          <svg
+                            className="w-5 h-5 text-green-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 4v16m8-8H4"
+                            />
                           </svg>
                         ) : (
-                          <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                          <svg
+                            className="w-5 h-5 text-orange-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M20 12H4"
+                            />
                           </svg>
                         )}
                       </div>
-                      
+
                       {/* Transaction Details */}
                       <div>
                         <div className="font-medium text-white">
-                          {tx.type === 'mint' ? 'Mint' : 'Burn'} {tx.toToken}
+                          {tx.type === "mint" ? "Mint" : "Burn"} {tx.toToken}
                         </div>
                         <div className="text-sm text-gray-400">
-                          {parseFloat(tx.fromAmount).toFixed(tx.fromToken === 'BTC' ? 6 : 2)} {tx.fromToken} → {parseFloat(tx.toAmount).toFixed(tx.toToken === 'BTC' ? 6 : 2)} {tx.toToken}
+                          {parseFloat(tx.fromAmount).toFixed(
+                            tx.fromToken === "BTC" ? 6 : 2,
+                          )}{" "}
+                          {tx.fromToken} →{" "}
+                          {parseFloat(tx.toAmount).toFixed(
+                            tx.toToken === "BTC" ? 6 : 2,
+                          )}{" "}
+                          {tx.toToken}
                         </div>
                       </div>
                     </div>
 
                     {/* Status and Time */}
                     <div className="text-right">
-                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        tx.status === 'success' 
-                          ? 'bg-green-900/30 text-green-400 border border-green-500/30'
-                          : tx.status === 'pending'
-                          ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-500/30'
-                          : 'bg-red-900/30 text-red-400 border border-red-500/30'
-                      }`}>
-                        {tx.status === 'success' && '✓ Success'}
-                        {tx.status === 'pending' && '⏳ Pending'}
-                        {tx.status === 'failed' && '✗ Failed'}
+                      <div
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          tx.status === "success"
+                            ? "bg-green-900/30 text-green-400 border border-green-500/30"
+                            : tx.status === "pending"
+                              ? "bg-yellow-900/30 text-yellow-400 border border-yellow-500/30"
+                              : "bg-red-900/30 text-red-400 border border-red-500/30"
+                        }`}
+                      >
+                        {tx.status === "success" && "✓ Success"}
+                        {tx.status === "pending" && "⏳ Pending"}
+                        {tx.status === "failed" && "✗ Failed"}
                       </div>
                       <div className="text-xs text-gray-400 mt-1">
                         {new Date(tx.timestamp).toLocaleTimeString()}
                       </div>
-                      {tx.txHash && tx.status === 'success' && (
+                      {tx.txHash && tx.status === "success" && (
                         <a
                           href={`https://sepolia.starkscan.co/tx/${tx.txHash}`}
                           target="_blank"
@@ -830,8 +918,18 @@ const ExchangeComponent = () => {
                           className="text-xs text-green-400 hover:text-green-300 flex items-center space-x-1 mt-1"
                         >
                           <span>View</span>
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                            />
                           </svg>
                         </a>
                       )}

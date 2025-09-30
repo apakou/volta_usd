@@ -5,7 +5,8 @@ import { usePersistentWallet } from "../hooks/usePersistentWallet";
 
 const ConnectWallet = () => {
   const router = useRouter();
-  const { isWalletConnected, address, disconnectWallet } = usePersistentWallet();
+  const { isWalletConnected, address, disconnectWallet } =
+    usePersistentWallet();
 
   const handleAppClick = () => {
     // Redirect to exchange page for wallet connection

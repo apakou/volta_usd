@@ -92,14 +92,14 @@ export const useVoltaVault = () => {
   // Transaction interface
   interface Transaction {
     id: string;
-    type: 'mint' | 'burn';
+    type: "mint" | "burn";
     fromToken: string;
     toToken: string;
     fromAmount: string;
     toAmount: string;
     txHash: string;
     timestamp: number;
-    status: 'pending' | 'success' | 'failed';
+    status: "pending" | "success" | "failed";
   }
 
   // Use Sepolia network for now - adjust based on your network detection
@@ -128,7 +128,10 @@ export const useVoltaVault = () => {
   };
 
   // Deposit WBTC and mint VUSD
-  const depositWbtcMintVusd = async (wbtcAmount: string, vusdAmount?: string) => {
+  const depositWbtcMintVusd = async (
+    wbtcAmount: string,
+    vusdAmount?: string,
+  ) => {
     if (!contract || !account) {
       throw new Error("Contract or account not available");
     }
@@ -142,17 +145,17 @@ export const useVoltaVault = () => {
       // Add pending transaction
       const pendingTransaction: Transaction = {
         id: transactionId,
-        type: 'mint',
-        fromToken: 'BTC',
-        toToken: 'VUSD',
+        type: "mint",
+        fromToken: "BTC",
+        toToken: "VUSD",
         fromAmount: (Number(wbtcAmount) / 1e8).toString(),
-        toAmount: vusdAmount || '0',
-        txHash: '',
+        toAmount: vusdAmount || "0",
+        txHash: "",
         timestamp: Date.now(),
-        status: 'pending'
+        status: "pending",
       };
-      
-      setTransactions(prev => [pendingTransaction, ...prev]);
+
+      setTransactions((prev) => [pendingTransaction, ...prev]);
 
       const amountU256 = numberToCairoU256(wbtcAmount);
 
@@ -160,25 +163,31 @@ export const useVoltaVault = () => {
       const result = await sendAsync([call]);
 
       // Update transaction with success
-      setTransactions(prev => prev.map(tx => 
-        tx.id === transactionId 
-          ? { ...tx, txHash: result?.transaction_hash || '', status: 'success' as const }
-          : tx
-      ));
+      setTransactions((prev) =>
+        prev.map((tx) =>
+          tx.id === transactionId
+            ? {
+                ...tx,
+                txHash: result?.transaction_hash || "",
+                status: "success" as const,
+              }
+            : tx,
+        ),
+      );
 
       return result;
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Transaction failed";
       setError(errorMessage);
-      
+
       // Update transaction with failure
-      setTransactions(prev => prev.map(tx => 
-        tx.id === transactionId 
-          ? { ...tx, status: 'failed' as const }
-          : tx
-      ));
-      
+      setTransactions((prev) =>
+        prev.map((tx) =>
+          tx.id === transactionId ? { ...tx, status: "failed" as const } : tx,
+        ),
+      );
+
       throw err;
     } finally {
       setIsLoading(false);
@@ -186,7 +195,10 @@ export const useVoltaVault = () => {
   };
 
   // Burn VUSD and withdraw WBTC
-  const burnVusdWithdrawWbtc = async (vusdAmount: string, wbtcAmount?: string) => {
+  const burnVusdWithdrawWbtc = async (
+    vusdAmount: string,
+    wbtcAmount?: string,
+  ) => {
     if (!contract || !account) {
       throw new Error("Contract or account not available");
     }
@@ -200,17 +212,17 @@ export const useVoltaVault = () => {
       // Add pending transaction
       const pendingTransaction: Transaction = {
         id: transactionId,
-        type: 'burn',
-        fromToken: 'VUSD',
-        toToken: 'BTC',
+        type: "burn",
+        fromToken: "VUSD",
+        toToken: "BTC",
         fromAmount: (Number(vusdAmount) / 1e18).toString(),
-        toAmount: wbtcAmount || '0',
-        txHash: '',
+        toAmount: wbtcAmount || "0",
+        txHash: "",
         timestamp: Date.now(),
-        status: 'pending'
+        status: "pending",
       };
-      
-      setTransactions(prev => [pendingTransaction, ...prev]);
+
+      setTransactions((prev) => [pendingTransaction, ...prev]);
 
       const amountU256 = numberToCairoU256(vusdAmount);
 
@@ -218,25 +230,31 @@ export const useVoltaVault = () => {
       const result = await sendAsync([call]);
 
       // Update transaction with success
-      setTransactions(prev => prev.map(tx => 
-        tx.id === transactionId 
-          ? { ...tx, txHash: result?.transaction_hash || '', status: 'success' as const }
-          : tx
-      ));
+      setTransactions((prev) =>
+        prev.map((tx) =>
+          tx.id === transactionId
+            ? {
+                ...tx,
+                txHash: result?.transaction_hash || "",
+                status: "success" as const,
+              }
+            : tx,
+        ),
+      );
 
       return result;
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Transaction failed";
       setError(errorMessage);
-      
+
       // Update transaction with failure
-      setTransactions(prev => prev.map(tx => 
-        tx.id === transactionId 
-          ? { ...tx, status: 'failed' as const }
-          : tx
-      ));
-      
+      setTransactions((prev) =>
+        prev.map((tx) =>
+          tx.id === transactionId ? { ...tx, status: "failed" as const } : tx,
+        ),
+      );
+
       throw err;
     } finally {
       setIsLoading(false);

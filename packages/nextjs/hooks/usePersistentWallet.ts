@@ -36,10 +36,11 @@ export const usePersistentWallet = () => {
   // Get saved connection state from localStorage
   const getSavedConnectionState = () => {
     try {
-      const isConnected = localStorage.getItem("volta_wallet_connected") === "true";
+      const isConnected =
+        localStorage.getItem("volta_wallet_connected") === "true";
       const connectorId = localStorage.getItem("volta_wallet_connector");
       const savedAddress = localStorage.getItem("volta_wallet_address");
-      
+
       return {
         isConnected,
         connectorId,
@@ -60,13 +61,13 @@ export const usePersistentWallet = () => {
     const attemptAutoReconnect = async () => {
       try {
         const { isConnected, connectorId } = getSavedConnectionState();
-        
+
         if (isConnected && connectorId && !isWalletConnected) {
           // Find the saved connector
           const savedConnector = connectors.find(
-            (connector) => connector.id === connectorId
+            (connector) => connector.id === connectorId,
           );
-          
+
           if (savedConnector && savedConnector.available()) {
             console.log("Auto-reconnecting to wallet:", connectorId);
             await connect({ connector: savedConnector });
@@ -134,16 +135,16 @@ export const usePersistentWallet = () => {
     address,
     status,
     currentConnector,
-    
+
     // Connection management
     connectWallet,
     disconnectWallet,
     connectors,
-    
+
     // Persistence state
     isInitialized,
     hasUserPreviouslyConnected,
-    
+
     // Utilities
     getSavedConnectionState,
     clearConnectionState,
