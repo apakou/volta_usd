@@ -1,18 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAccount, useDisconnect } from "@starknet-react/core";
 
 const ConnectWallet = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
   const router = useRouter();
-
-  const handleConnect = () => {
-    // Mock wallet connection - replace with actual wallet integration
-    setIsConnected(true);
-    setWalletAddress("0x1234...5678");
-  };
+  const { address, status } = useAccount();
+  const { disconnect } = useDisconnect();
+  
+  const isConnected = status === "connected" && !!address;
 
   const handleAppClick = () => {
     // Redirect to exchange page for wallet connection
@@ -20,8 +16,7 @@ const ConnectWallet = () => {
   };
 
   const handleDisconnect = () => {
-    setIsConnected(false);
-    setWalletAddress("");
+    disconnect();
   };
 
   if (isConnected) {
@@ -29,7 +24,7 @@ const ConnectWallet = () => {
       <div className="flex items-center space-x-3 bg-slate-800/50 border border-slate-700/50 rounded-md px-4 py-2.5">
         <div className="w-2 h-2 bg-green-400 rounded-full"></div>
         <span className="text-sm font-satoshi text-gray-300">
-          {walletAddress}
+          {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Connected"}
         </span>
         <button
           onClick={handleDisconnect}
