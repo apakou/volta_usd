@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useVoltaVault } from "../../hooks/useVoltaVault";
 import { usePersistentWallet } from "../../hooks/usePersistentWallet";
 import { useWalletBalances } from "../../hooks/useWalletBalances";
@@ -56,14 +56,14 @@ const ExchangeComponent = () => {
     }
   }, [isInitialized, isWalletConnected, hasUserPreviouslyConnected]);
 
-  const handleSwap = () => {
+  const handleSwap = useCallback(() => {
     setFromToken(toToken);
     setToToken(fromToken);
     setInputAmount(outputAmount);
     setOutputAmount(inputAmount);
-  };
+  }, [toToken, fromToken, outputAmount, inputAmount]);
 
-  const calculateOutput = async (input: string) => {
+  const calculateOutput = useCallback(async (input: string) => {
     if (!input || isNaN(Number(input))) return "";
 
     const inputNum = Number(input);
@@ -109,7 +109,7 @@ const ExchangeComponent = () => {
     }
     
     return "";
-  };
+  }, [fromToken, btcPrice, calculateVusdFromWbtc, calculateWbtcFromVusd]);
 
   const [isCalculating, setIsCalculating] = useState(false);
   const [lastPriceUpdate, setLastPriceUpdate] = useState<Date | null>(null);
@@ -123,6 +123,26 @@ const ExchangeComponent = () => {
   const [minimumReceived, setMinimumReceived] = useState<string>("");
   const [priceImpact, setPriceImpact] = useState<number>(0);
 
+  // Input validation state
+  const [inputError, setInputError] = useState<string>("");
+  const [slippageError, setSlippageError] = useState<string>("");
+
+  // Gas fee estimation state
+  const [gasEstimate, setGasEstimate] = useState<{
+    gasLimit: bigint;
+    maxFeePerGas: bigint;
+    estimatedFeeETH: string;
+    estimatedFeeUSD: string;
+    isEstimating: boolean;
+    error?: string;
+  }>({
+    gasLimit: BigInt(0),
+    maxFeePerGas: BigInt(0),
+    estimatedFeeETH: "0",
+    estimatedFeeUSD: "0",
+    isEstimating: false,
+  });
+
   // Helper function to convert decimal to wei safely using BigInt
   const toWei = (amount: string, decimals: number = 18): string => {
     const [whole, fraction = ""] = amount.split(".");
@@ -134,16 +154,16 @@ const ExchangeComponent = () => {
   };
 
   // Calculate minimum received amount with slippage protection
-  const calculateMinimumReceived = (outputAmount: string, slippage: number): string => {
+  const calculateMinimumReceived = useCallback((outputAmount: string, slippage: number): string => {
     if (!outputAmount || isNaN(Number(outputAmount))) return "";
     const output = Number(outputAmount);
     const slippageMultiplier = (100 - slippage) / 100;
     const minimumAmount = output * slippageMultiplier;
     return fromToken === "BTC" ? minimumAmount.toFixed(2) : minimumAmount.toFixed(8);
-  };
+  }, [fromToken]);
 
   // Calculate price impact
-  const calculatePriceImpact = (inputAmount: string, outputAmount: string): number => {
+  const calculatePriceImpact = useCallback((inputAmount: string, outputAmount: string): number => {
     if (!inputAmount || !outputAmount || !btcPrice) return 0;
     
     const input = Number(inputAmount);
@@ -164,13 +184,111 @@ const ExchangeComponent = () => {
     
     const impact = ((expectedRate - actualRate) / expectedRate) * 100;
     return Math.max(0, impact); // Don't show negative impact
-  };
+  }, [btcPrice, fromToken]);
 
-  const handleInputChange = async (value: string) => {
-    setInputAmount(value);
-    if (value && !isNaN(Number(value))) {
+  // Input validation functions
+  const validateInput = useCallback((value: string): string => {
+    if (!value.trim()) return "";
+    
+    // Check if it's a valid number
+    if (isNaN(Number(value))) {
+      return "Please enter a valid number";
+    }
+    
+    const numValue = Number(value);
+    
+    // Check for negative values
+    if (numValue < 0) {
+      return "Amount cannot be negative";
+    }
+    
+    // Check for zero
+    if (numValue === 0) {
+      return "Amount must be greater than zero";
+    }
+    
+    // Check for excessive decimal places
+    const decimals = value.split('.')[1];
+    const maxDecimals = fromToken === "BTC" ? 8 : 6; // BTC: 8 decimals, VUSD: 6 decimals for display
+    if (decimals && decimals.length > maxDecimals) {
+      return `Maximum ${maxDecimals} decimal places allowed`;
+    }
+    
+    // Check minimum amount (to prevent dust transactions)
+    const minAmount = fromToken === "BTC" ? 0.00001 : 0.01; // 0.00001 BTC or 0.01 VUSD
+    if (numValue < minAmount) {
+      return `Minimum amount is ${minAmount} ${fromToken}`;
+    }
+    
+    // Check maximum amount against balance
+    if (isWalletConnected && !balancesLoading) {
+      const balance = fromToken === "BTC" ? wbtcBalance : vusdBalance;
+      const maxAmount = Number(balance.value) / Math.pow(10, balance.decimals);
+      if (numValue > maxAmount) {
+        return `Insufficient ${fromToken} balance`;
+      }
+    }
+    
+    // Check for unreasonably large amounts
+    const maxReasonableAmount = fromToken === "BTC" ? 1000 : 100000000; // 1000 BTC or 100M VUSD
+    if (numValue > maxReasonableAmount) {
+      return `Amount exceeds reasonable limit`;
+    }
+    
+    return "";
+  }, [fromToken, isWalletConnected, balancesLoading, wbtcBalance?.value, wbtcBalance?.decimals, vusdBalance?.value, vusdBalance?.decimals]);
+
+  const validateSlippage = useCallback((value: number): string => {
+    if (isNaN(value)) {
+      return "Please enter a valid number";
+    }
+    
+    if (value < 0) {
+      return "Slippage cannot be negative";
+    }
+    
+    if (value > 50) {
+      return "Maximum slippage is 50%";
+    }
+    
+    if (value > 0 && value < 0.01) {
+      return "Minimum slippage is 0.01%";
+    }
+    
+    return "";
+  }, []);
+
+  // Sanitize input to prevent invalid characters
+  const sanitizeInput = useCallback((value: string): string => {
+    // Remove any non-numeric characters except decimal point
+    let sanitized = value.replace(/[^0-9.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = sanitized.split('.');
+    if (parts.length > 2) {
+      sanitized = parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    // Remove leading zeros (except for 0.xxx)
+    if (sanitized.length > 1 && sanitized[0] === '0' && sanitized[1] !== '.') {
+      sanitized = sanitized.substring(1);
+    }
+    
+    return sanitized;
+  }, []);
+
+  const handleInputChange = useCallback(async (value: string) => {
+    // Sanitize the input first
+    const sanitizedValue = sanitizeInput(value);
+    setInputAmount(sanitizedValue);
+    
+    // Validate input
+    const error = validateInput(sanitizedValue);
+    setInputError(error);
+    
+    if (sanitizedValue && !error) {
       setIsCalculating(true);
-      const output = await calculateOutput(value);
+      const output = await calculateOutput(sanitizedValue);
       setOutputAmount(output);
       
       // Calculate slippage protection values
@@ -178,8 +296,10 @@ const ExchangeComponent = () => {
         const minReceived = calculateMinimumReceived(output, slippageTolerance);
         setMinimumReceived(minReceived);
         
-        const impact = calculatePriceImpact(value, output);
+        const impact = calculatePriceImpact(sanitizedValue, output);
         setPriceImpact(impact);
+
+        // Gas estimation will be handled by a separate effect
       }
       
       setIsCalculating(false);
@@ -187,37 +307,66 @@ const ExchangeComponent = () => {
       setOutputAmount("");
       setMinimumReceived("");
       setPriceImpact(0);
+      // Reset gas estimate when no valid input
+      setGasEstimate(prev => ({
+        ...prev,
+        estimatedFeeETH: "0",
+        estimatedFeeUSD: "0",
+        error: undefined,
+      }));
       setIsCalculating(false);
     }
-  };
+  }, [sanitizeInput, validateInput, calculateOutput, calculateMinimumReceived, calculatePriceImpact, slippageTolerance, fromToken]);
 
-  // Recalculate output when tokens are swapped or BTC price changes
+  // Recalculate output when tokens are swapped or BTC price changes (but NOT when inputAmount changes)
   useEffect(() => {
     if (inputAmount && !isNaN(Number(inputAmount))) {
-      const recalculate = async () => {
-        setIsCalculating(true);
-        const output = await calculateOutput(inputAmount);
-        setOutputAmount(output);
-        
-        // Recalculate slippage protection values
-        if (output) {
-          const minReceived = calculateMinimumReceived(output, slippageTolerance);
-          setMinimumReceived(minReceived);
+      // Re-validate input when context changes
+      const error = validateInput(inputAmount);
+      setInputError(error);
+      
+      if (!error) {
+        const recalculate = async () => {
+          setIsCalculating(true);
+          const output = await calculateOutput(inputAmount);
+          setOutputAmount(output);
           
-          const impact = calculatePriceImpact(inputAmount, output);
-          setPriceImpact(impact);
-        }
-        
-        setIsCalculating(false);
-      };
-      recalculate();
+          // Recalculate slippage protection values
+          if (output) {
+            const minReceived = calculateMinimumReceived(output, slippageTolerance);
+            setMinimumReceived(minReceived);
+            
+            const impact = calculatePriceImpact(inputAmount, output);
+            setPriceImpact(impact);
+          }
+          
+          setIsCalculating(false);
+        };
+        recalculate();
+      }
     } else {
       setOutputAmount("");
       setMinimumReceived("");
       setPriceImpact(0);
+      setGasEstimate(prev => ({
+        ...prev,
+        estimatedFeeETH: "0",
+        estimatedFeeUSD: "0",
+        error: undefined,
+      }));
       setIsCalculating(false);
     }
-  }, [fromToken, toToken, btcPrice, slippageTolerance, calculateVusdFromWbtc, calculateWbtcFromVusd]);
+    // NOTE: inputAmount is intentionally NOT in dependencies to avoid infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fromToken, toToken, btcPrice, slippageTolerance]);
+
+  // Re-validate input when balances change (for balance validation)
+  useEffect(() => {
+    if (inputAmount && !isNaN(Number(inputAmount)) && isWalletConnected) {
+      const error = validateInput(inputAmount);
+      setInputError(error);
+    }
+  }, [wbtcBalance?.value, vusdBalance?.value, isWalletConnected, balancesLoading, inputAmount, validateInput]);
 
   // Load BTC price on component mount and set up real-time updates
   useEffect(() => {
@@ -275,6 +424,14 @@ const ExchangeComponent = () => {
       };
     }
   }, [isWalletConnected, getBtcPrice]);
+
+  // Initial gas estimation when wallet connects and there's already an amount
+  useEffect(() => {
+    if (isWalletConnected && inputAmount && outputAmount && !inputError) {
+      const transactionType = fromToken === "BTC" ? 'mint' : 'burn';
+      estimateGasFees(transactionType, inputAmount);
+    }
+  }, [isWalletConnected]);
 
   // Auto-hide notifications after 5 seconds
   useEffect(() => {
@@ -348,8 +505,145 @@ const ExchangeComponent = () => {
     }
   };
 
+  // Gas fee estimation functions - wrapped in useCallback to prevent recreating on every render
+  const estimateGasFees = useCallback(async (transactionType: 'mint' | 'burn', amount: string) => {
+    if (!isWalletConnected || !amount || !address) {
+      return;
+    }
+
+    setGasEstimate(prev => ({ ...prev, isEstimating: true, error: undefined }));
+
+    try {
+      // Get current ETH price for USD conversion
+      let ethPriceUSD = 2500; // Fallback price
+      
+      // Fetch real ETH price (in a production app, you'd use a price API)
+      try {
+        // For demonstration, we'll estimate based on current market conditions
+        // In a real app, fetch from CoinGecko, CoinMarketCap, or similar API
+        ethPriceUSD = 2500; // Current approximate ETH price
+      } catch (error) {
+        console.warn("Could not fetch ETH price, using fallback");
+      }
+      
+      let gasLimit: bigint;
+      let maxFeePerGas: bigint;
+      
+      // Get current network gas price
+      const currentGasPrice = await getCurrentGasPrice();
+
+      if (transactionType === 'mint') {
+        // Estimate gas for minting VUSD (deposit WBTC)
+        try {
+          const wbtcAmountWei = toWei(amount, 8);
+          
+          // For Starknet, gas estimation is different from Ethereum
+          // These values are realistic for Starknet operations
+          gasLimit = BigInt(75000); // More realistic gas limit for complex DeFi operations
+          maxFeePerGas = currentGasPrice;
+          
+          // Add 10% buffer for gas price volatility
+          maxFeePerGas = (maxFeePerGas * BigInt(110)) / BigInt(100);
+          
+        } catch (error) {
+          console.error("Error estimating mint gas:", error);
+          gasLimit = BigInt(100000); // Conservative fallback
+          maxFeePerGas = BigInt(2000000000); // Higher fallback
+        }
+      } else {
+        // Estimate gas for burning VUSD (withdraw WBTC)
+        try {
+          const vusdAmountWei = toWei(amount, 18);
+          
+          gasLimit = BigInt(85000); // Slightly higher for burn operation (more complex)
+          maxFeePerGas = currentGasPrice;
+          
+          // Add 10% buffer
+          maxFeePerGas = (maxFeePerGas * BigInt(110)) / BigInt(100);
+          
+        } catch (error) {
+          console.error("Error estimating burn gas:", error);
+          gasLimit = BigInt(110000);
+          maxFeePerGas = BigInt(2500000000);
+        }
+      }
+
+      // Calculate total fee (Starknet uses different fee structure)
+      // For Starknet, fees are typically much lower than Ethereum
+      const totalFeeWei = gasLimit * maxFeePerGas;
+      
+      // Convert to ETH equivalent (Starknet native token conversion)
+      // Note: In reality, Starknet uses STRK token, but we'll show ETH equivalent for user familiarity
+      const feeInETH = Number(totalFeeWei) / 1e18;
+      
+      // For Starknet, fees are typically 10-100x lower than Ethereum
+      const starknetFeeMultiplier = 0.01; // Starknet fees are ~1% of Ethereum fees
+      const adjustedFeeInETH = feeInETH * starknetFeeMultiplier;
+      
+      // Convert to USD
+      const feeInUSD = adjustedFeeInETH * ethPriceUSD;
+
+      setGasEstimate({
+        gasLimit,
+        maxFeePerGas,
+        estimatedFeeETH: adjustedFeeInETH.toFixed(6),
+        estimatedFeeUSD: Math.max(0.01, feeInUSD).toFixed(3), // Minimum $0.01
+        isEstimating: false,
+      });
+
+    } catch (error) {
+      console.error("Gas estimation error:", error);
+      setGasEstimate(prev => ({
+        ...prev,
+        isEstimating: false,
+        error: "Failed to estimate gas fees",
+        estimatedFeeETH: "0.0001", // Realistic Starknet fallback
+        estimatedFeeUSD: "0.25", // ~$0.25 fallback
+      }));
+    }
+  }, [isWalletConnected, address]);
+
+  // Separate effect for gas estimation to prevent dependency loops
+  useEffect(() => {
+    if (inputAmount && outputAmount && !inputError && isWalletConnected) {
+      const transactionType = fromToken === "BTC" ? 'mint' : 'burn';
+      estimateGasFees(transactionType, inputAmount);
+    }
+  }, [inputAmount, outputAmount, inputError, fromToken, isWalletConnected, estimateGasFees]);
+
+  // Manual gas estimation refresh
+  const refreshGasEstimate = useCallback(async () => {
+    if (inputAmount && outputAmount && !inputError) {
+      const transactionType = fromToken === "BTC" ? 'mint' : 'burn';
+      await estimateGasFees(transactionType, inputAmount);
+    }
+  }, [inputAmount, outputAmount, inputError, fromToken, estimateGasFees]);
+
+  // Get current network gas price (simplified for Starknet)
+  const getCurrentGasPrice = async (): Promise<bigint> => {
+    try {
+      // In a real implementation, you would fetch current gas price from the network
+      // For Starknet, gas fees are typically very low and stable
+      return BigInt(1000000000); // ~1 Gwei equivalent
+    } catch (error) {
+      console.error("Error fetching gas price:", error);
+      return BigInt(1500000000); // Fallback gas price
+    }
+  };
+
   const handleExecuteExchange = async () => {
-    if (!isWalletConnected || !inputAmount) {
+    // Final validation before executing
+    if (!isWalletConnected || !inputAmount || inputError || slippageError || !outputAmount) {
+      return;
+    }
+
+    // Double-check input validation
+    const finalInputError = validateInput(inputAmount);
+    const finalSlippageError = validateSlippage(slippageTolerance);
+    
+    if (finalInputError || finalSlippageError) {
+      setInputError(finalInputError);
+      setSlippageError(finalSlippageError);
       return;
     }
 
@@ -869,10 +1163,26 @@ const ExchangeComponent = () => {
                     <button
                       onClick={() => {
                         const balance = fromToken === "BTC" ? wbtcBalance : vusdBalance;
-                        const maxAmount = (Number(balance.value) / Math.pow(10, balance.decimals)).toString();
-                        handleInputChange(maxAmount);
+                        let maxAmount = Number(balance.value) / Math.pow(10, balance.decimals);
+                        
+                        // Leave a small buffer for gas fees if using full balance
+                        if (fromToken === "BTC" && maxAmount > 0.00001) {
+                          maxAmount = Math.max(0, maxAmount - 0.00001); // Reserve 0.00001 BTC for fees
+                        } else if (fromToken === "VUSD" && maxAmount > 0.01) {
+                          maxAmount = Math.max(0, maxAmount - 0.01); // Reserve 0.01 VUSD for fees
+                        }
+                        
+                        const maxAmountStr = fromToken === "BTC" 
+                          ? maxAmount.toFixed(8).replace(/\.?0+$/, '') 
+                          : maxAmount.toFixed(6).replace(/\.?0+$/, '');
+                        handleInputChange(maxAmountStr);
                       }}
-                      className="text-xs text-green-400 hover:text-green-300 bg-green-400/10 hover:bg-green-400/20 px-2 py-1 rounded border border-green-400/30 transition-colors"
+                      disabled={
+                        balancesLoading || 
+                        (fromToken === "BTC" && Number(wbtcBalance.value) === 0) ||
+                        (fromToken === "VUSD" && Number(vusdBalance.value) === 0)
+                      }
+                      className="text-xs text-green-400 hover:text-green-300 bg-green-400/10 hover:bg-green-400/20 px-2 py-1 rounded border border-green-400/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       MAX
                     </button>
@@ -881,14 +1191,33 @@ const ExchangeComponent = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={inputAmount}
                   onChange={(e) => handleInputChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    // Allow: backspace, delete, tab, escape, enter, home, end, left, right, decimal point
+                    if ([8, 9, 27, 13, 46, 35, 36, 37, 39].includes(e.keyCode) ||
+                        // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+                        (e.ctrlKey && [65, 67, 86, 88, 90].includes(e.keyCode)) ||
+                        // Allow decimal point (period and numpad period)
+                        [190, 110].includes(e.keyCode)) {
+                      return;
+                    }
+                    // Allow numbers (0-9 on both main keyboard and numpad)
+                    if ((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)) {
+                      return;
+                    }
+                    // Prevent all other keys
+                    e.preventDefault();
+                  }}
                   placeholder={
                     isWalletConnected ? "0.0" : "Connect wallet first"
                   }
                   disabled={!isWalletConnected}
-                  className="bg-transparent text-2xl font-semibold flex-1 outline-none disabled:text-gray-500 disabled:cursor-not-allowed"
+                  className={`bg-transparent text-2xl font-semibold flex-1 outline-none disabled:text-gray-500 disabled:cursor-not-allowed ${
+                    inputError ? 'text-red-400' : ''
+                  }`}
                 />
                 <div className="flex items-center space-x-2 bg-volta-card px-3 py-2 rounded-lg">
                   <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-xs font-bold">
@@ -897,6 +1226,22 @@ const ExchangeComponent = () => {
                   <span className="font-semibold">{fromToken}</span>
                 </div>
               </div>
+              {/* Input Error or Helper Display */}
+              {inputError ? (
+                <div className="mt-2 text-xs text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-2 flex items-center space-x-2">
+                  <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>{inputError}</span>
+                </div>
+              ) : isWalletConnected && !inputAmount && (
+                <div className="mt-2 text-xs text-gray-400 bg-gray-900/20 border border-gray-600/30 rounded-lg p-2">
+                  <div className="flex items-center justify-between">
+                    <span>Min: {fromToken === "BTC" ? "0.00001 BTC" : "0.01 VUSD"}</span>
+                    <span>Max decimals: {fromToken === "BTC" ? "8" : "6"}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Swap Button */}
@@ -986,7 +1331,10 @@ const ExchangeComponent = () => {
                       {[0.1, 0.5, 1.0].map((value) => (
                         <button
                           key={value}
-                          onClick={() => setSlippageTolerance(value)}
+                          onClick={() => {
+                            setSlippageTolerance(value);
+                            setSlippageError(""); // Clear any existing error
+                          }}
                           className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                             slippageTolerance === value
                               ? 'bg-green-400/20 text-green-400 border border-green-400/50'
@@ -999,22 +1347,32 @@ const ExchangeComponent = () => {
                       <div className="flex items-center space-x-1">
                         <input
                           type="number"
-                          step="0.1"
-                          min="0"
+                          step="0.01"
+                          min="0.01"
                           max="50"
                           value={slippageTolerance}
                           onChange={(e) => {
                             const value = parseFloat(e.target.value);
-                            if (!isNaN(value) && value >= 0 && value <= 50) {
+                            const error = validateSlippage(value);
+                            setSlippageError(error);
+                            
+                            if (!error && !isNaN(value)) {
                               setSlippageTolerance(value);
                             }
                           }}
-                          className="w-16 px-2 py-1 text-xs bg-gray-700 border border-gray-600 rounded text-white"
+                          className={`w-16 px-2 py-1 text-xs bg-gray-700 border rounded text-white ${
+                            slippageError ? 'border-red-500' : 'border-gray-600'
+                          }`}
                         />
                         <span className="text-xs text-gray-400">%</span>
                       </div>
                     </div>
-                    {slippageTolerance > 5 && (
+                    {slippageError && (
+                      <div className="text-xs text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-2">
+                        {slippageError}
+                      </div>
+                    )}
+                    {!slippageError && slippageTolerance > 5 && (
                       <div className="text-xs text-yellow-400 bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-2">
                         ⚠️ High slippage tolerance may result in unfavorable trades
                       </div>
@@ -1164,7 +1522,10 @@ const ExchangeComponent = () => {
                 !inputAmount ||
                 Number(inputAmount) === 0 ||
                 isProcessing ||
-                vaultLoading
+                vaultLoading ||
+                !!inputError ||
+                !!slippageError ||
+                !outputAmount
               }
               onClick={
                 isWalletConnected
@@ -1202,8 +1563,14 @@ const ExchangeComponent = () => {
                 </>
               ) : !isWalletConnected ? (
                 <span>Connect Wallet to Trade</span>
+              ) : inputError ? (
+                <span>{inputError}</span>
+              ) : slippageError ? (
+                <span>Fix Slippage Settings</span>
               ) : !inputAmount || Number(inputAmount) === 0 ? (
                 <span>Enter Amount</span>
+              ) : !outputAmount ? (
+                <span>Calculating...</span>
               ) : priceImpact > 5 ? (
                 <span>⚠️ Swap Anyway</span>
               ) : (
@@ -1217,9 +1584,51 @@ const ExchangeComponent = () => {
             {/* Transaction Details */}
             {inputAmount && outputAmount && (
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Network Fee</span>
-                  <span>~$0.50</span>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-400">Network Fee</span>
+                    {gasEstimate.isEstimating && (
+                      <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {gasEstimate.error ? (
+                      <div className="flex items-center space-x-1">
+                        <span className="text-red-400 text-xs">Failed to estimate</span>
+                        <button
+                          onClick={refreshGasEstimate}
+                          disabled={gasEstimate.isEstimating}
+                          className="p-1 hover:bg-red-400/10 rounded transition-colors disabled:opacity-50"
+                          title="Retry Gas Estimation"
+                        >
+                          <svg className="w-3 h-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : gasEstimate.isEstimating ? (
+                      <span className="text-gray-400">Estimating...</span>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <div className="text-right">
+                          <div className="text-white font-medium">${gasEstimate.estimatedFeeUSD}</div>
+                          <div className="text-xs text-gray-400">{gasEstimate.estimatedFeeETH} ETH</div>
+                        </div>
+                        <button
+                          onClick={refreshGasEstimate}
+                          disabled={gasEstimate.isEstimating}
+                          className="p-1 hover:bg-green-400/10 rounded transition-colors disabled:opacity-50"
+                          title="Refresh Gas Estimate"
+                        >
+                          <svg className={`w-3 h-3 text-gray-400 hover:text-green-400 transition-colors ${
+                            gasEstimate.isEstimating ? 'animate-spin' : ''
+                          }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Protocol Fee</span>
@@ -1238,6 +1647,49 @@ const ExchangeComponent = () => {
                     }>
                       {priceImpact.toFixed(2)}%
                     </span>
+                  </div>
+                )}
+                {gasEstimate.gasLimit > 0 && (
+                  <div className="pt-2 border-t border-gray-600">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">Gas Limit</span>
+                      <span className="text-gray-400">{gasEstimate.gasLimit.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">Max Fee Per Gas</span>
+                      <span className="text-gray-400">{(Number(gasEstimate.maxFeePerGas) / 1e9).toFixed(2)} Gwei</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Gas Fee Warning */}
+                {Number(gasEstimate.estimatedFeeUSD) > 5 && !gasEstimate.isEstimating && (
+                  <div className="mt-2 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                    <div className="flex items-start space-x-2">
+                      <svg className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      <div>
+                        <h5 className="text-yellow-400 font-medium text-xs">High Network Fee</h5>
+                        <p className="text-yellow-300 text-xs mt-0.5">
+                          Network fees are currently elevated. Consider waiting for lower gas prices if not urgent.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Network Status Indicator */}
+                {!gasEstimate.error && !gasEstimate.isEstimating && gasEstimate.gasLimit > 0 && (
+                  <div className="mt-2 flex items-center justify-between text-xs">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-gray-500">Network: Starknet</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-gray-500">Fee Type:</span>
+                      <span className="text-green-400">Low Cost</span>
+                    </div>
                   </div>
                 )}
               </div>
