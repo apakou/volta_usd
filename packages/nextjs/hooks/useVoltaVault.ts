@@ -295,13 +295,29 @@ export const useVoltaVault = () => {
 
   // Get BTC price from oracle
   const getBtcPrice = async (): Promise<number> => {
-    if (!contract) return 0;
+    if (!contract) {
+      console.warn("VoltaVault contract not initialized");
+      return 0;
+    }
+
+    if (!account || status !== "connected") {
+      console.warn("Wallet not connected, cannot fetch BTC price");
+      return 0;
+    }
 
     try {
+      console.log("Fetching BTC price from VoltaVault contract...");
       const result = await contract.call("get_btc_price", []);
-      return cairoU256ToNumber(result);
+      const price = cairoU256ToNumber(result);
+      console.log("BTC price fetched successfully:", price);
+      return price;
     } catch (err) {
-      console.error("Error getting BTC price:", err);
+      console.error("Error getting BTC price from VoltaVault contract:", {
+        error: err,
+        contractAddress: contract.address,
+        account: account?.address,
+        status
+      });
       return 0;
     }
   };

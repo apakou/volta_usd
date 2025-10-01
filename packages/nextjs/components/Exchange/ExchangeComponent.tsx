@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useVoltaVault } from "../../hooks/useVoltaVault";
 import { usePersistentWallet } from "../../hooks/usePersistentWallet";
+import { useWalletBalances } from "../../hooks/useWalletBalances";
 
 const ExchangeComponent = () => {
   const [inputAmount, setInputAmount] = useState("");
@@ -36,6 +37,9 @@ const ExchangeComponent = () => {
     transactions,
   } = useVoltaVault();
 
+  // Wallet balances hook - automatically refreshes after transactions
+  const { wbtc: wbtcBalance, vusd: vusdBalance, isLoading: balancesLoading, error: balanceError, refetch: refetchBalances } = useWalletBalances();
+
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [btcPrice, setBtcPrice] = useState<number>(0);
@@ -62,41 +66,117 @@ const ExchangeComponent = () => {
   const calculateOutput = async (input: string) => {
     if (!input || isNaN(Number(input))) return "";
 
+    const inputNum = Number(input);
+    if (inputNum <= 0) return "";
+
     try {
       if (fromToken === "BTC") {
-        // Calculate VUSD from WBTC using VoltaVault
+        // Try to calculate VUSD from WBTC using VoltaVault
         const vusdAmount = await calculateVusdFromWbtc(input);
-        return (vusdAmount / 1e18).toFixed(2); // Convert from wei to readable format
+        if (vusdAmount > 0) {
+          return (vusdAmount / 1e18).toFixed(2); // Convert from wei to readable format
+        }
+        // Fallback: Use BTC price for 1:1 USD calculation
+        if (btcPrice > 0) {
+          const usdValue = inputNum * btcPrice;
+          return usdValue.toFixed(2);
+        }
       } else {
-        // Calculate WBTC from VUSD using VoltaVault
+        // Try to calculate WBTC from VUSD using VoltaVault
         const wbtcAmount = await calculateWbtcFromVusd(input);
-        return (wbtcAmount / 1e8).toFixed(8); // Convert from satoshi to BTC
+        if (wbtcAmount > 0) {
+          return (wbtcAmount / 1e8).toFixed(8); // Convert from satoshi to BTC
+        }
+        // Fallback: Use BTC price for 1:1 USD calculation
+        if (btcPrice > 0) {
+          const btcValue = inputNum / btcPrice;
+          return btcValue.toFixed(8);
+        }
       }
     } catch (error) {
-      console.error("Error calculating output:", error);
-      return "";
+      console.error("Error calculating output, using fallback:", error);
+      
+      // Fallback calculation using BTC price
+      if (btcPrice > 0) {
+        if (fromToken === "BTC") {
+          const usdValue = inputNum * btcPrice;
+          return usdValue.toFixed(2);
+        } else {
+          const btcValue = inputNum / btcPrice;
+          return btcValue.toFixed(8);
+        }
+      }
     }
+    
+    return "";
+  };
+
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  // Helper function to convert decimal to wei safely using BigInt
+  const toWei = (amount: string, decimals: number = 18): string => {
+    const [whole, fraction = ""] = amount.split(".");
+    const wholeBigInt = BigInt(whole || "0");
+    const fractionPadded = fraction.padEnd(decimals, "0").slice(0, decimals);
+    const fractionBigInt = BigInt(fractionPadded || "0");
+    const multiplier = BigInt(10 ** decimals);
+    return (wholeBigInt * multiplier + fractionBigInt).toString();
   };
 
   const handleInputChange = async (value: string) => {
     setInputAmount(value);
-    const output = await calculateOutput(value);
-    setOutputAmount(output);
+    if (value && !isNaN(Number(value))) {
+      setIsCalculating(true);
+      const output = await calculateOutput(value);
+      setOutputAmount(output);
+      setIsCalculating(false);
+    } else {
+      setOutputAmount("");
+      setIsCalculating(false);
+    }
   };
+
+  // Recalculate output when tokens are swapped or BTC price changes
+  useEffect(() => {
+    if (inputAmount && !isNaN(Number(inputAmount))) {
+      const recalculate = async () => {
+        setIsCalculating(true);
+        const output = await calculateOutput(inputAmount);
+        setOutputAmount(output);
+        setIsCalculating(false);
+      };
+      recalculate();
+    } else {
+      setOutputAmount("");
+      setIsCalculating(false);
+    }
+  }, [fromToken, toToken, btcPrice, calculateVusdFromWbtc, calculateWbtcFromVusd]);
 
   // Load BTC price on component mount
   useEffect(() => {
     const loadBtcPrice = async () => {
       try {
+        console.log("Loading BTC price...");
         const price = await getBtcPrice();
-        setBtcPrice(price / 1e8); // Convert from wei to USD
+        if (price > 0) {
+          setBtcPrice(price / 1e8); // Convert from wei to USD
+          console.log("BTC price loaded successfully:", price / 1e8);
+        } else {
+          console.warn("BTC price is 0, using fallback");
+          setBtcPrice(67000); // Fallback BTC price
+        }
       } catch (error) {
-        console.error("Error loading BTC price:", error);
+        console.error("Error loading BTC price, using fallback:", error);
+        setBtcPrice(67000); // Fallback BTC price
       }
     };
 
     if (isWalletConnected) {
-      loadBtcPrice();
+      // Add a small delay to ensure wallet is fully connected
+      const timer = setTimeout(() => {
+        loadBtcPrice();
+      }, 1000);
+      return () => clearTimeout(timer);
     }
   }, [isWalletConnected, getBtcPrice]);
 
@@ -150,7 +230,7 @@ const ExchangeComponent = () => {
 
       if (fromToken === "BTC") {
         // Deposit WBTC and mint VUSD
-        const wbtcAmountWei = (parseFloat(inputAmount) * 1e8).toString(); // Convert to satoshi
+        const wbtcAmountWei = toWei(inputAmount, 8); // Convert to satoshi (8 decimals)
         result = await depositWbtcMintVusd(wbtcAmountWei, outputAmount);
 
         // Show success notification for minting
@@ -161,8 +241,8 @@ const ExchangeComponent = () => {
           txHash: result?.transaction_hash,
         });
       } else {
-        // Burn VUSD and withdraw WBTC
-        const vusdAmountWei = (parseFloat(inputAmount) * 1e18).toString(); // Convert to wei
+        // Burn VUSD and withdraw WBTC - use safe BigInt conversion
+        const vusdAmountWei = toWei(inputAmount, 18); // Convert to wei (18 decimals)
         result = await burnVusdWithdrawWbtc(vusdAmountWei, outputAmount);
 
         // Show success notification for burning
@@ -177,6 +257,12 @@ const ExchangeComponent = () => {
       // Reset form after successful transaction
       setInputAmount("");
       setOutputAmount("");
+      
+      // Force balance refresh after successful transaction
+      setTimeout(() => {
+        console.log("Refreshing balances after successful transaction...");
+        refetchBalances();
+      }, 2000); // Wait 2 seconds for the transaction to be processed
     } catch (error) {
       console.error("Exchange transaction failed:", error);
 
@@ -643,8 +729,25 @@ const ExchangeComponent = () => {
             <div className="bg-volta-darker rounded-xl p-4">
               <div className="flex justify-between items-center mb-2">
                 <label className="text-sm text-gray-400">From</label>
-                <div className="text-sm text-gray-400">
-                  Balance: {isWalletConnected ? "0.00" : "--"}
+                <div className="flex items-center space-x-2">
+                  <div className="text-sm text-gray-400">
+                    Balance: {isWalletConnected ? 
+                      (balancesLoading ? "Loading..." : 
+                        fromToken === "BTC" ? wbtcBalance.formatted : vusdBalance.formatted
+                      ) : "--"}
+                  </div>
+                  {isWalletConnected && !balancesLoading && (
+                    <button
+                      onClick={() => {
+                        const balance = fromToken === "BTC" ? wbtcBalance : vusdBalance;
+                        const maxAmount = (Number(balance.value) / Math.pow(10, balance.decimals)).toString();
+                        handleInputChange(maxAmount);
+                      }}
+                      className="text-xs text-green-400 hover:text-green-300 bg-green-400/10 hover:bg-green-400/20 px-2 py-1 rounded border border-green-400/30 transition-colors"
+                    >
+                      MAX
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -694,17 +797,25 @@ const ExchangeComponent = () => {
               <div className="flex justify-between items-center mb-2">
                 <label className="text-sm text-gray-400">To</label>
                 <div className="text-sm text-gray-400">
-                  Balance: {isWalletConnected ? "0.00" : "--"}
+                  Balance: {isWalletConnected ? 
+                    (balancesLoading ? "Loading..." : 
+                      toToken === "BTC" ? wbtcBalance.formatted : vusdBalance.formatted
+                    ) : "--"}
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <input
-                  type="number"
-                  value={outputAmount}
-                  readOnly
-                  placeholder="0.0"
-                  className="bg-transparent text-2xl font-semibold flex-1 outline-none text-gray-300"
-                />
+                <div className="flex items-center flex-1">
+                  <input
+                    type="number"
+                    value={outputAmount}
+                    readOnly
+                    placeholder={isCalculating ? "Calculating..." : "0.0"}
+                    className="bg-transparent text-2xl font-semibold flex-1 outline-none text-gray-300"
+                  />
+                  {isCalculating && (
+                    <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin ml-2"></div>
+                  )}
+                </div>
                 <div className="flex items-center space-x-2 bg-volta-card px-3 py-2 rounded-lg">
                   <div className="w-6 h-6 bg-volta-primary rounded-full flex items-center justify-center text-xs font-bold">
                     {toToken === "BTC" ? "₿" : "V"}

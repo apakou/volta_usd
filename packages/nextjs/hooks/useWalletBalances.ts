@@ -51,6 +51,7 @@ interface WalletBalances {
   };
   isLoading: boolean;
   error: string | null;
+  refetch: () => Promise<void>;
 }
 
 export const useWalletBalances = (): WalletBalances => {
@@ -63,7 +64,8 @@ export const useWalletBalances = (): WalletBalances => {
   const {
     data: wbtcBalanceRaw,
     isLoading: wbtcLoading,
-    error: wbtcError
+    error: wbtcError,
+    refetch: refetchWbtc
   } = useReadContract({
     address: CONTRACTS.sepolia.wbtc,
     abi: ERC20_ABI,
@@ -77,7 +79,8 @@ export const useWalletBalances = (): WalletBalances => {
   const {
     data: vusdBalanceRaw,
     isLoading: vusdLoading,
-    error: vusdError
+    error: vusdError,
+    refetch: refetchVusd
   } = useReadContract({
     address: CONTRACTS.sepolia.vusd,
     abi: ERC20_ABI,
@@ -99,33 +102,44 @@ export const useWalletBalances = (): WalletBalances => {
     return BigInt(value);
   };
 
-  // Format balance with shorter, more readable values
+  // Format balance with simple, readable values
   const formatBalance = (balance: bigint, decimals: number): string => {
     try {
-      if (balance === 0n) return "0.00";
+      if (balance === 0n) return "0";
       
       const formatted = formatUnits(balance, decimals);
       const num = parseFloat(formatted);
       
-      if (num === 0) return "0.00";
-      if (num < 0.0001) return "< 0.0001";
-      if (num < 1) return num.toFixed(4); // Show 4 decimals for small amounts
-      if (num < 10) return num.toFixed(3); // Show 3 decimals for amounts < 10
-      if (num < 100) return num.toFixed(2); // Show 2 decimals for amounts < 100
-      if (num < 1000) return num.toFixed(1); // Show 1 decimal for amounts < 1000
+      if (num === 0) return "0";
       
-      // For larger amounts, use whole numbers with K/M notation
-      if (num >= 1000000) {
-        return (num / 1000000).toFixed(1) + "M";
+      // Very small amounts
+      if (num < 0.000001) return "~0";
+      if (num < 0.01) return num.toFixed(6).replace(/\.?0+$/, "");
+      
+      // Small amounts (less than 1)
+      if (num < 1) return num.toFixed(3).replace(/\.?0+$/, "");
+      
+      // Regular amounts (1 to 999)
+      if (num < 1000) {
+        if (num % 1 === 0) return num.toFixed(0); // Whole numbers
+        return num.toFixed(2).replace(/\.?0+$/, ""); // Remove trailing zeros
       }
+      
+      // Large amounts with K/M notation
+      if (num >= 1000000) {
+        const millions = num / 1000000;
+        return millions.toFixed(1).replace(/\.0$/, "") + "M";
+      }
+      
       if (num >= 1000) {
-        return (num / 1000).toFixed(1) + "K";
+        const thousands = num / 1000;
+        return thousands.toFixed(1).replace(/\.0$/, "") + "K";
       }
       
       return num.toFixed(0);
     } catch (err) {
       console.error("Error formatting balance:", err);
-      return "0.00";
+      return "0";
     }
   };
 
@@ -148,20 +162,30 @@ export const useWalletBalances = (): WalletBalances => {
     }
   }, [wbtcError, vusdError]);
 
+  // Manual refetch function
+  const refetch = async () => {
+    try {
+      await Promise.all([refetchWbtc(), refetchVusd()]);
+    } catch (error) {
+      console.error("Error refetching balances:", error);
+    }
+  };
+
   return {
     wbtc: {
       value: wbtcBalanceValue,
-      formatted: formatBalance(wbtcBalanceValue, 8), // WBTC has 8 decimals
+      formatted: `${formatBalance(wbtcBalanceValue, 8)} BTC`, // WBTC has 8 decimals
       symbol: "WBTC",
       decimals: 8,
     },
     vusd: {
       value: vusdBalanceValue,
-      formatted: formatBalance(vusdBalanceValue, 18), // VUSD has 18 decimals
+      formatted: `${formatBalance(vusdBalanceValue, 18)} VUSD`, // VUSD has 18 decimals
       symbol: "VUSD",
       decimals: 18,
     },
     isLoading: wbtcLoading || vusdLoading,
     error,
+    refetch,
   };
 };
