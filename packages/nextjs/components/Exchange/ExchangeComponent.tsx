@@ -808,7 +808,7 @@ const ExchangeComponent = () => {
 
                   <p className="text-gray-300 mb-8 text-base">
                     Select your preferred Starknet wallet to connect to{" "}
-                    <span className="font-semibold text-green-400">
+                    <span className="font-semibold" style={{ color: '#0090FF' }}>
                       VOLTA USD
                     </span>
                   </p>
@@ -1206,8 +1206,8 @@ const ExchangeComponent = () => {
 
                 {/* Arrow */}
                 <div className="flex justify-center">
-                  <div className="w-8 h-8 bg-volta-primary rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#0090FF' }}>
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                     </svg>
                   </div>
@@ -1215,7 +1215,7 @@ const ExchangeComponent = () => {
 
                 <div className="flex items-center justify-between p-4 bg-volta-darker rounded-xl">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-volta-primary rounded-full flex items-center justify-center text-sm font-bold">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ backgroundColor: '#0090FF' }}>
                       {toToken === "BTC" ? "₿" : "V"}
                     </div>
                     <div>
@@ -1224,7 +1224,7 @@ const ExchangeComponent = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-bold text-green-400">{outputAmount}</div>
+                    <div className="text-lg font-bold" style={{ color: '#0090FF' }}>{outputAmount}</div>
                     <div className="text-sm text-gray-400">
                       {toToken === "BTC" && btcPrice > 0 && 
                         `≈ $${(Number(outputAmount) * btcPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -1466,7 +1466,21 @@ const ExchangeComponent = () => {
                         (fromToken === "BTC" && Number(wbtcBalance.value) === 0) ||
                         (fromToken === "VUSD" && Number(vusdBalance.value) === 0)
                       }
-                      className="text-xs text-green-400 hover:text-green-300 bg-green-400/10 hover:bg-green-400/20 px-3 py-1.5 rounded-md border border-green-400/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                      className="text-xs px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                      style={{ 
+                        color: '#0090FF',
+                        backgroundColor: 'rgba(0, 144, 255, 0.1)',
+                        borderColor: 'rgba(0, 144, 255, 0.3)',
+                        border: '1px solid'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = '#007ACC';
+                        e.currentTarget.style.backgroundColor = 'rgba(0, 144, 255, 0.2)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = '#0090FF';
+                        e.currentTarget.style.backgroundColor = 'rgba(0, 144, 255, 0.1)';
+                      }}
                     >
                       MAX
                     </button>
@@ -1532,7 +1546,10 @@ const ExchangeComponent = () => {
             <div className="flex justify-center">
               <button
                 onClick={handleSwap}
-                className="w-12 h-12 sm:w-10 sm:h-10 bg-volta-primary hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors touch-manipulation"
+                className="w-12 h-12 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors touch-manipulation"
+                style={{ backgroundColor: '#0090FF' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#007ACC'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0090FF'}
               >
                 <svg
                   className="w-5 h-5"
@@ -1575,7 +1592,7 @@ const ExchangeComponent = () => {
                   )}
                 </div>
                 <div className="flex items-center space-x-2 bg-volta-card px-2 sm:px-3 py-2 rounded-lg flex-shrink-0">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-volta-primary rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#0090FF' }}>
                     {toToken === "BTC" ? "₿" : "V"}
                   </div>
                   <span className="font-semibold text-sm sm:text-base">{toToken}</span>
@@ -1590,7 +1607,10 @@ const ExchangeComponent = () => {
                   <span className="text-xs sm:text-sm text-gray-400">Slippage Tolerance</span>
                   <button
                     onClick={() => setShowSlippageSettings(!showSlippageSettings)}
-                    className="flex items-center space-x-1 text-xs sm:text-sm text-green-400 hover:text-green-300 touch-manipulation"
+                    className="flex items-center space-x-1 text-xs sm:text-sm touch-manipulation"
+                    style={{ color: '#0090FF' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#007ACC'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#0090FF'}
                   >
                     <span>{slippageTolerance}%</span>
                     <svg
@@ -1621,9 +1641,14 @@ const ExchangeComponent = () => {
                           }}
                           className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors touch-manipulation ${
                             slippageTolerance === value
-                              ? 'bg-green-400/20 text-green-400 border border-green-400/50'
+                              ? 'border'
                               : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                           }`}
+                          style={slippageTolerance === value ? {
+                            backgroundColor: 'rgba(0, 144, 255, 0.2)',
+                            color: '#0090FF',
+                            borderColor: 'rgba(0, 144, 255, 0.5)'
+                          } : {}}
                         >
                           {value}%
                         </button>
