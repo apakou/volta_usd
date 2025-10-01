@@ -718,12 +718,12 @@ const ExchangeComponent = () => {
 
       {/* Wallet Connection Modal */}
       {isInitialized && !isWalletConnected && showWalletModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-volta-card rounded-3xl p-8 max-w-md w-full border border-gray-700 shadow-2xl">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="bg-volta-card rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-md w-full border border-gray-700 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="text-center">
-              <div className="mb-6">
+              <div className="mb-4 sm:mb-6">
                 <svg
-                  className="w-20 h-20 mx-auto text-green-400 mb-4"
+                  className="w-16 h-16 sm:w-20 sm:h-20 mx-auto text-green-400 mb-3 sm:mb-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -739,10 +739,10 @@ const ExchangeComponent = () => {
 
               {!showWalletSelection ? (
                 <>
-                  <h3 className="text-3xl font-bold text-white mb-4">
+                  <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">
                     Connect to Starknet
                   </h3>
-                  <p className="text-gray-300 mb-8 text-lg">
+                  <p className="text-gray-300 mb-6 sm:mb-8 text-base sm:text-lg">
                     Click below to see and connect your installed Starknet
                     wallets
                   </p>
@@ -753,7 +753,7 @@ const ExchangeComponent = () => {
                       disabled={
                         !connectors.some((connector) => connector.available())
                       }
-                      className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-slate-900 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-3"
+                      className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-slate-900 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-2 sm:space-x-3"
                     >
                       <svg
                         className="w-6 h-6"
@@ -1008,9 +1008,9 @@ const ExchangeComponent = () => {
 
       {/* Success/Error Notification */}
       {notification && (
-        <div className="fixed top-4 right-4 z-50 animate-fade-in">
+        <div className="fixed top-4 left-4 right-4 sm:top-4 sm:right-4 sm:left-auto z-50 animate-fade-in">
           <div
-            className={`max-w-md p-4 rounded-xl shadow-2xl border ${
+            className={`max-w-md mx-auto sm:mx-0 p-3 sm:p-4 rounded-xl shadow-2xl border ${
               notification.type === "success"
                 ? "bg-green-900/90 border-green-500/50 text-green-100"
                 : "bg-red-900/90 border-red-500/50 text-red-100"
@@ -1113,28 +1113,28 @@ const ExchangeComponent = () => {
         </div>
       )}
 
-      <div className="max-w-md mx-auto">
-        <div className="bg-volta-card rounded-2xl p-6 border border-gray-700">
+      <div className="max-w-md mx-auto px-4 sm:px-6">
+        <div className="bg-volta-card rounded-2xl p-4 sm:p-6 border border-gray-700">
           {/* Wallet Status */}
           {isWalletConnected && (
-            <div className="mb-4 bg-green-900/20 border border-green-500/30 rounded-xl p-4">
-              <div className="flex items-center justify-between">
+            <div className="mb-4 bg-green-900/20 border border-green-500/30 rounded-xl p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                 <div className="flex items-center space-x-3">
                   <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                   <div>
                     <div className="text-sm font-semibold text-green-400">
                       Wallet Connected
                     </div>
-                    <div className="text-xs text-gray-400 font-mono">
+                    <div className="text-xs text-gray-400 font-mono break-all">
                       {address
-                        ? `${address.slice(0, 6)}...${address.slice(-4)}`
+                        ? `${address.slice(0, 8)}...${address.slice(-6)}`
                         : ""}
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={handleDisconnectWallet}
-                  className="text-xs text-gray-400 hover:text-red-400 transition-colors px-2 py-1 border border-gray-600 hover:border-red-400 rounded"
+                  className="text-xs text-gray-400 hover:text-red-400 transition-colors px-3 py-2 border border-gray-600 hover:border-red-400 rounded self-start sm:self-auto"
                 >
                   Disconnect
                 </button>
@@ -1143,17 +1143,17 @@ const ExchangeComponent = () => {
           )}
 
           <div className="mb-6">
-            <h2 className="text-2xl font-bold mb-2">Exchange</h2>
-            <p className="text-gray-400">Convert BTC to VUSD and vice versa</p>
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">Exchange</h2>
+            <p className="text-sm sm:text-base text-gray-400">Convert BTC to VUSD and vice versa</p>
           </div>
 
           {/* From Token */}
           <div className="space-y-4">
             <div className="bg-volta-darker rounded-xl p-4">
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-sm text-gray-400">From</label>
-                <div className="flex items-center space-x-2">
-                  <div className="text-sm text-gray-400">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-2 sm:space-y-0">
+                <label className="text-sm text-gray-400 font-medium">From</label>
+                <div className="flex items-center justify-between sm:justify-end space-x-2">
+                  <div className="text-xs sm:text-sm text-gray-400 truncate">
                     Balance: {isWalletConnected ? 
                       (balancesLoading ? "Loading..." : 
                         fromToken === "BTC" ? wbtcBalance.formatted : vusdBalance.formatted
@@ -1182,14 +1182,14 @@ const ExchangeComponent = () => {
                         (fromToken === "BTC" && Number(wbtcBalance.value) === 0) ||
                         (fromToken === "VUSD" && Number(vusdBalance.value) === 0)
                       }
-                      className="text-xs text-green-400 hover:text-green-300 bg-green-400/10 hover:bg-green-400/20 px-2 py-1 rounded border border-green-400/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="text-xs text-green-400 hover:text-green-300 bg-green-400/10 hover:bg-green-400/20 px-3 py-1.5 rounded-md border border-green-400/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                     >
                       MAX
                     </button>
                   )}
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 <input
                   type="text"
                   inputMode="decimal"
@@ -1215,28 +1215,28 @@ const ExchangeComponent = () => {
                     isWalletConnected ? "0.0" : "Connect wallet first"
                   }
                   disabled={!isWalletConnected}
-                  className={`bg-transparent text-2xl font-semibold flex-1 outline-none disabled:text-gray-500 disabled:cursor-not-allowed ${
+                  className={`bg-transparent text-xl sm:text-2xl font-semibold flex-1 outline-none disabled:text-gray-500 disabled:cursor-not-allowed min-w-0 ${
                     inputError ? 'text-red-400' : ''
                   }`}
                 />
-                <div className="flex items-center space-x-2 bg-volta-card px-3 py-2 rounded-lg">
-                  <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-xs font-bold">
+                <div className="flex items-center space-x-2 bg-volta-card px-2 sm:px-3 py-2 rounded-lg flex-shrink-0">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-orange-500 rounded-full flex items-center justify-center text-xs font-bold">
                     {fromToken === "BTC" ? "₿" : "V"}
                   </div>
-                  <span className="font-semibold">{fromToken}</span>
+                  <span className="font-semibold text-sm sm:text-base">{fromToken}</span>
                 </div>
               </div>
               {/* Input Error or Helper Display */}
               {inputError ? (
-                <div className="mt-2 text-xs text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-2 flex items-center space-x-2">
-                  <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mt-2 text-xs text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-2 sm:p-3 flex items-start space-x-2">
+                  <svg className="w-3 h-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span>{inputError}</span>
+                  <span className="leading-tight">{inputError}</span>
                 </div>
               ) : isWalletConnected && !inputAmount && (
-                <div className="mt-2 text-xs text-gray-400 bg-gray-900/20 border border-gray-600/30 rounded-lg p-2">
-                  <div className="flex items-center justify-between">
+                <div className="mt-2 text-xs text-gray-400 bg-gray-900/20 border border-gray-600/30 rounded-lg p-2 sm:p-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0">
                     <span>Min: {fromToken === "BTC" ? "0.00001 BTC" : "0.01 VUSD"}</span>
                     <span>Max decimals: {fromToken === "BTC" ? "8" : "6"}</span>
                   </div>
@@ -1248,7 +1248,7 @@ const ExchangeComponent = () => {
             <div className="flex justify-center">
               <button
                 onClick={handleSwap}
-                className="w-10 h-10 bg-volta-primary hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors"
+                className="w-12 h-12 sm:w-10 sm:h-10 bg-volta-primary hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors touch-manipulation"
               >
                 <svg
                   className="w-5 h-5"
@@ -1268,45 +1268,45 @@ const ExchangeComponent = () => {
 
             {/* To Token */}
             <div className="bg-volta-darker rounded-xl p-4">
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-sm text-gray-400">To</label>
-                <div className="text-sm text-gray-400">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-2 sm:space-y-0">
+                <label className="text-sm text-gray-400 font-medium">To</label>
+                <div className="text-xs sm:text-sm text-gray-400 truncate">
                   Balance: {isWalletConnected ? 
                     (balancesLoading ? "Loading..." : 
                       toToken === "BTC" ? wbtcBalance.formatted : vusdBalance.formatted
                     ) : "--"}
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center flex-1">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="flex items-center flex-1 min-w-0">
                   <input
                     type="number"
                     value={outputAmount}
                     readOnly
                     placeholder={isCalculating ? "Calculating..." : "0.0"}
-                    className="bg-transparent text-2xl font-semibold flex-1 outline-none text-gray-300"
+                    className="bg-transparent text-xl sm:text-2xl font-semibold flex-1 outline-none text-gray-300 min-w-0"
                   />
                   {isCalculating && (
-                    <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin ml-2"></div>
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin ml-2 flex-shrink-0"></div>
                   )}
                 </div>
-                <div className="flex items-center space-x-2 bg-volta-card px-3 py-2 rounded-lg">
-                  <div className="w-6 h-6 bg-volta-primary rounded-full flex items-center justify-center text-xs font-bold">
+                <div className="flex items-center space-x-2 bg-volta-card px-2 sm:px-3 py-2 rounded-lg flex-shrink-0">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-volta-primary rounded-full flex items-center justify-center text-xs font-bold">
                     {toToken === "BTC" ? "₿" : "V"}
                   </div>
-                  <span className="font-semibold">{toToken}</span>
+                  <span className="font-semibold text-sm sm:text-base">{toToken}</span>
                 </div>
               </div>
             </div>
 
             {/* Slippage Settings */}
             {inputAmount && outputAmount && (
-              <div className="bg-volta-darker rounded-xl p-3 space-y-2">
+              <div className="bg-volta-darker rounded-xl p-3 sm:p-4 space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Slippage Tolerance</span>
+                  <span className="text-xs sm:text-sm text-gray-400">Slippage Tolerance</span>
                   <button
                     onClick={() => setShowSlippageSettings(!showSlippageSettings)}
-                    className="flex items-center space-x-1 text-sm text-green-400 hover:text-green-300"
+                    className="flex items-center space-x-1 text-xs sm:text-sm text-green-400 hover:text-green-300 touch-manipulation"
                   >
                     <span>{slippageTolerance}%</span>
                     <svg
@@ -1327,7 +1327,7 @@ const ExchangeComponent = () => {
                 
                 {showSlippageSettings && (
                   <div className="space-y-3 pt-2 border-t border-gray-600">
-                    <div className="flex space-x-2">
+                    <div className="flex flex-wrap gap-2">
                       {[0.1, 0.5, 1.0].map((value) => (
                         <button
                           key={value}
@@ -1335,7 +1335,7 @@ const ExchangeComponent = () => {
                             setSlippageTolerance(value);
                             setSlippageError(""); // Clear any existing error
                           }}
-                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors touch-manipulation ${
                             slippageTolerance === value
                               ? 'bg-green-400/20 text-green-400 border border-green-400/50'
                               : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -1360,7 +1360,7 @@ const ExchangeComponent = () => {
                               setSlippageTolerance(value);
                             }
                           }}
-                          className={`w-16 px-2 py-1 text-xs bg-gray-700 border rounded text-white ${
+                          className={`w-14 sm:w-16 px-2 py-1 text-xs bg-gray-700 border rounded text-white ${
                             slippageError ? 'border-red-500' : 'border-gray-600'
                           }`}
                         />
@@ -1381,16 +1381,16 @@ const ExchangeComponent = () => {
                 )}
 
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Minimum Received</span>
-                  <span className="text-sm text-white">
+                  <span className="text-xs sm:text-sm text-gray-400">Minimum Received</span>
+                  <span className="text-xs sm:text-sm text-white font-medium">
                     {minimumReceived} {toToken}
                   </span>
                 </div>
 
                 {priceImpact > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-400">Price Impact</span>
-                    <span className={`text-sm ${
+                    <span className="text-xs sm:text-sm text-gray-400">Price Impact</span>
+                    <span className={`text-xs sm:text-sm font-medium ${
                       priceImpact > 5 ? 'text-red-400' : 
                       priceImpact > 2 ? 'text-yellow-400' : 'text-green-400'
                     }`}>
@@ -1532,7 +1532,7 @@ const ExchangeComponent = () => {
                   ? handleExecuteExchange
                   : () => setShowWalletModal(true)
               }
-              className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-2 ${
+              className={`w-full py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-2 ${
                 priceImpact > 5 
                   ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-500 disabled:to-gray-600'
                   : 'bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600'
@@ -1574,16 +1574,21 @@ const ExchangeComponent = () => {
               ) : priceImpact > 5 ? (
                 <span>⚠️ Swap Anyway</span>
               ) : (
-                <span>
-                  {fromToken === "BTC" ? "Deposit & Mint" : "Burn & Withdraw"}{" "}
-                  {fromToken === "BTC" ? "VUSD" : "WBTC"}
+                <span className="text-center">
+                  <span className="hidden sm:inline">
+                    {fromToken === "BTC" ? "Deposit & Mint" : "Burn & Withdraw"}{" "}
+                    {fromToken === "BTC" ? "VUSD" : "WBTC"}
+                  </span>
+                  <span className="sm:hidden">
+                    {fromToken === "BTC" ? "Mint VUSD" : "Burn VUSD"}
+                  </span>
                 </span>
               )}
             </button>
 
             {/* Transaction Details */}
             {inputAmount && outputAmount && (
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-1">
                     <span className="text-gray-400">Network Fee</span>
@@ -1591,14 +1596,14 @@ const ExchangeComponent = () => {
                       <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                     )}
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
                     {gasEstimate.error ? (
                       <div className="flex items-center space-x-1">
                         <span className="text-red-400 text-xs">Failed to estimate</span>
                         <button
                           onClick={refreshGasEstimate}
                           disabled={gasEstimate.isEstimating}
-                          className="p-1 hover:bg-red-400/10 rounded transition-colors disabled:opacity-50"
+                          className="p-1 hover:bg-red-400/10 rounded transition-colors disabled:opacity-50 touch-manipulation"
                           title="Retry Gas Estimation"
                         >
                           <svg className="w-3 h-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1609,15 +1614,15 @@ const ExchangeComponent = () => {
                     ) : gasEstimate.isEstimating ? (
                       <span className="text-gray-400">Estimating...</span>
                     ) : (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1 sm:space-x-2">
                         <div className="text-right">
                           <div className="text-white font-medium">${gasEstimate.estimatedFeeUSD}</div>
-                          <div className="text-xs text-gray-400">{gasEstimate.estimatedFeeETH} ETH</div>
+                          <div className="text-xs text-gray-400 hidden sm:block">{gasEstimate.estimatedFeeETH} ETH</div>
                         </div>
                         <button
                           onClick={refreshGasEstimate}
                           disabled={gasEstimate.isEstimating}
-                          className="p-1 hover:bg-green-400/10 rounded transition-colors disabled:opacity-50"
+                          className="p-1 hover:bg-green-400/10 rounded transition-colors disabled:opacity-50 touch-manipulation"
                           title="Refresh Gas Estimate"
                         >
                           <svg className={`w-3 h-3 text-gray-400 hover:text-green-400 transition-colors ${
