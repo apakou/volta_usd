@@ -262,12 +262,12 @@ const ExchangeComponent = () => {
                       <span>Connect Wallet</span>
                     </button>
 
-                    <button
+                    {/* <button
                       onClick={handleTryWithoutWallet}
                       className="w-full border border-gray-600 hover:border-gray-400 text-gray-300 hover:text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-200"
                     >
                       Continue Without Wallet
-                    </button>
+                    </button> */}
                   </div>
                 </>
               ) : (
