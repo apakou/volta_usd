@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { StarknetConfig, starkscan } from "@starknet-react/core";
 import Navbar from "~~/components/Navbar";
+import WalletBalanceBar from "~~/components/WalletBalanceBar";
 
 import { appChains, connectors } from "~~/services/web3/connectors";
 import provider from "~~/services/web3/provider";
@@ -16,6 +17,7 @@ const ScaffoldStarkApp = ({ children }: { children: React.ReactNode }) => {
     <>
       <div className="flex relative flex-col min-h-screen bg-volta-dark">
         <Navbar />
+        <WalletBalanceBar />
         <main className="relative flex flex-col flex-1">{children}</main>
       </div>
       <Toaster />
