@@ -112,6 +112,16 @@ const ExchangeComponent = () => {
   };
 
   const [isCalculating, setIsCalculating] = useState(false);
+  const [lastPriceUpdate, setLastPriceUpdate] = useState<Date | null>(null);
+  const [isPriceLoading, setIsPriceLoading] = useState(false);
+  const [previousPrice, setPreviousPrice] = useState<number>(0);
+  const [priceChange, setPriceChange] = useState<'up' | 'down' | 'stable'>('stable');
+  
+  // Slippage protection state
+  const [slippageTolerance, setSlippageTolerance] = useState<number>(0.5); // Default 0.5%
+  const [showSlippageSettings, setShowSlippageSettings] = useState(false);
+  const [minimumReceived, setMinimumReceived] = useState<string>("");
+  const [priceImpact, setPriceImpact] = useState<number>(0);
 
   // Helper function to convert decimal to wei safely using BigInt
   const toWei = (amount: string, decimals: number = 18): string => {
@@ -123,15 +133,60 @@ const ExchangeComponent = () => {
     return (wholeBigInt * multiplier + fractionBigInt).toString();
   };
 
+  // Calculate minimum received amount with slippage protection
+  const calculateMinimumReceived = (outputAmount: string, slippage: number): string => {
+    if (!outputAmount || isNaN(Number(outputAmount))) return "";
+    const output = Number(outputAmount);
+    const slippageMultiplier = (100 - slippage) / 100;
+    const minimumAmount = output * slippageMultiplier;
+    return fromToken === "BTC" ? minimumAmount.toFixed(2) : minimumAmount.toFixed(8);
+  };
+
+  // Calculate price impact
+  const calculatePriceImpact = (inputAmount: string, outputAmount: string): number => {
+    if (!inputAmount || !outputAmount || !btcPrice) return 0;
+    
+    const input = Number(inputAmount);
+    const output = Number(outputAmount);
+    
+    if (input === 0 || output === 0) return 0;
+    
+    let expectedRate: number;
+    let actualRate: number;
+    
+    if (fromToken === "BTC") {
+      expectedRate = btcPrice; // Expected VUSD per BTC
+      actualRate = output / input; // Actual VUSD per BTC
+    } else {
+      expectedRate = 1 / btcPrice; // Expected BTC per VUSD
+      actualRate = output / input; // Actual BTC per VUSD
+    }
+    
+    const impact = ((expectedRate - actualRate) / expectedRate) * 100;
+    return Math.max(0, impact); // Don't show negative impact
+  };
+
   const handleInputChange = async (value: string) => {
     setInputAmount(value);
     if (value && !isNaN(Number(value))) {
       setIsCalculating(true);
       const output = await calculateOutput(value);
       setOutputAmount(output);
+      
+      // Calculate slippage protection values
+      if (output) {
+        const minReceived = calculateMinimumReceived(output, slippageTolerance);
+        setMinimumReceived(minReceived);
+        
+        const impact = calculatePriceImpact(value, output);
+        setPriceImpact(impact);
+      }
+      
       setIsCalculating(false);
     } else {
       setOutputAmount("");
+      setMinimumReceived("");
+      setPriceImpact(0);
       setIsCalculating(false);
     }
   };
@@ -143,40 +198,81 @@ const ExchangeComponent = () => {
         setIsCalculating(true);
         const output = await calculateOutput(inputAmount);
         setOutputAmount(output);
+        
+        // Recalculate slippage protection values
+        if (output) {
+          const minReceived = calculateMinimumReceived(output, slippageTolerance);
+          setMinimumReceived(minReceived);
+          
+          const impact = calculatePriceImpact(inputAmount, output);
+          setPriceImpact(impact);
+        }
+        
         setIsCalculating(false);
       };
       recalculate();
     } else {
       setOutputAmount("");
+      setMinimumReceived("");
+      setPriceImpact(0);
       setIsCalculating(false);
     }
-  }, [fromToken, toToken, btcPrice, calculateVusdFromWbtc, calculateWbtcFromVusd]);
+  }, [fromToken, toToken, btcPrice, slippageTolerance, calculateVusdFromWbtc, calculateWbtcFromVusd]);
 
-  // Load BTC price on component mount
+  // Load BTC price on component mount and set up real-time updates
   useEffect(() => {
     const loadBtcPrice = async () => {
       try {
+        setIsPriceLoading(true);
         console.log("Loading BTC price...");
         const price = await getBtcPrice();
         if (price > 0) {
-          setBtcPrice(price / 1e8); // Convert from wei to USD
-          console.log("BTC price loaded successfully:", price / 1e8);
+          const newPrice = price / 1e8; // Convert from wei to USD
+          
+          // Track price changes
+          if (btcPrice > 0) {
+            setPreviousPrice(btcPrice);
+            if (newPrice > btcPrice) {
+              setPriceChange('up');
+            } else if (newPrice < btcPrice) {
+              setPriceChange('down');
+            } else {
+              setPriceChange('stable');
+            }
+          }
+          
+          setBtcPrice(newPrice);
+          setLastPriceUpdate(new Date());
+          console.log("BTC price updated:", newPrice);
         } else {
           console.warn("BTC price is 0, using fallback");
           setBtcPrice(67000); // Fallback BTC price
+          setLastPriceUpdate(new Date());
         }
       } catch (error) {
         console.error("Error loading BTC price, using fallback:", error);
         setBtcPrice(67000); // Fallback BTC price
+        setLastPriceUpdate(new Date());
+      } finally {
+        setIsPriceLoading(false);
       }
     };
 
     if (isWalletConnected) {
-      // Add a small delay to ensure wallet is fully connected
-      const timer = setTimeout(() => {
+      // Initial load with delay
+      const initialTimer = setTimeout(() => {
         loadBtcPrice();
       }, 1000);
-      return () => clearTimeout(timer);
+
+      // Set up real-time price updates every 30 seconds
+      const priceUpdateInterval = setInterval(() => {
+        loadBtcPrice();
+      }, 30000); // Update every 30 seconds
+
+      return () => {
+        clearTimeout(initialTimer);
+        clearInterval(priceUpdateInterval);
+      };
     }
   }, [isWalletConnected, getBtcPrice]);
 
@@ -216,6 +312,39 @@ const ExchangeComponent = () => {
       await disconnectWallet();
     } catch (error) {
       console.error("Failed to disconnect wallet:", error);
+    }
+  };
+
+  // Manual price refresh function
+  const handleRefreshPrice = async () => {
+    if (!isWalletConnected || isPriceLoading) return;
+    
+    try {
+      setIsPriceLoading(true);
+      const price = await getBtcPrice();
+      if (price > 0) {
+        const newPrice = price / 1e8;
+        
+        // Track price changes for manual refresh too
+        if (btcPrice > 0) {
+          setPreviousPrice(btcPrice);
+          if (newPrice > btcPrice) {
+            setPriceChange('up');
+          } else if (newPrice < btcPrice) {
+            setPriceChange('down');
+          } else {
+            setPriceChange('stable');
+          }
+        }
+        
+        setBtcPrice(newPrice);
+        setLastPriceUpdate(new Date());
+        console.log("BTC price manually refreshed:", newPrice);
+      }
+    } catch (error) {
+      console.error("Error refreshing BTC price:", error);
+    } finally {
+      setIsPriceLoading(false);
     }
   };
 
@@ -825,16 +954,168 @@ const ExchangeComponent = () => {
               </div>
             </div>
 
+            {/* Slippage Settings */}
+            {inputAmount && outputAmount && (
+              <div className="bg-volta-darker rounded-xl p-3 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-400">Slippage Tolerance</span>
+                  <button
+                    onClick={() => setShowSlippageSettings(!showSlippageSettings)}
+                    className="flex items-center space-x-1 text-sm text-green-400 hover:text-green-300"
+                  >
+                    <span>{slippageTolerance}%</span>
+                    <svg
+                      className={`w-3 h-3 transition-transform ${showSlippageSettings ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                
+                {showSlippageSettings && (
+                  <div className="space-y-3 pt-2 border-t border-gray-600">
+                    <div className="flex space-x-2">
+                      {[0.1, 0.5, 1.0].map((value) => (
+                        <button
+                          key={value}
+                          onClick={() => setSlippageTolerance(value)}
+                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                            slippageTolerance === value
+                              ? 'bg-green-400/20 text-green-400 border border-green-400/50'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          {value}%
+                        </button>
+                      ))}
+                      <div className="flex items-center space-x-1">
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="50"
+                          value={slippageTolerance}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            if (!isNaN(value) && value >= 0 && value <= 50) {
+                              setSlippageTolerance(value);
+                            }
+                          }}
+                          className="w-16 px-2 py-1 text-xs bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                        <span className="text-xs text-gray-400">%</span>
+                      </div>
+                    </div>
+                    {slippageTolerance > 5 && (
+                      <div className="text-xs text-yellow-400 bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-2">
+                        ⚠️ High slippage tolerance may result in unfavorable trades
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-400">Minimum Received</span>
+                  <span className="text-sm text-white">
+                    {minimumReceived} {toToken}
+                  </span>
+                </div>
+
+                {priceImpact > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-400">Price Impact</span>
+                    <span className={`text-sm ${
+                      priceImpact > 5 ? 'text-red-400' : 
+                      priceImpact > 2 ? 'text-yellow-400' : 'text-green-400'
+                    }`}>
+                      {priceImpact.toFixed(2)}%
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Exchange Rate & BTC Price */}
             {(inputAmount && outputAmount) ||
               (btcPrice > 0 && (
                 <div className="bg-volta-darker rounded-xl p-3 space-y-2">
                   {btcPrice > 0 && (
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-400">BTC Price</span>
-                      <span className="text-sm font-medium text-green-400">
-                        ${btcPrice.toLocaleString()}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-400">BTC Price</span>
+                        {lastPriceUpdate && (
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span className="text-xs text-gray-500">
+                              {new Date().getTime() - lastPriceUpdate.getTime() < 60000 
+                                ? 'Live' 
+                                : `${Math.floor((new Date().getTime() - lastPriceUpdate.getTime()) / 60000)}m ago`}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
+                          <span className="text-sm font-medium text-green-400">
+                            ${btcPrice.toLocaleString()}
+                          </span>
+                          {priceChange !== 'stable' && previousPrice > 0 && (
+                            <div className="flex items-center space-x-1">
+                              <svg
+                                className={`w-3 h-3 ${
+                                  priceChange === 'up' ? 'text-green-400' : 'text-red-400'
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d={priceChange === 'up' ? "M7 14l5-5 5 5" : "M17 10l-5 5-5-5"}
+                                />
+                              </svg>
+                              <span className={`text-xs ${
+                                priceChange === 'up' ? 'text-green-400' : 'text-red-400'
+                              }`}>
+                                {priceChange === 'up' ? '+' : ''}
+                                {((btcPrice - previousPrice) / previousPrice * 100).toFixed(2)}%
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={handleRefreshPrice}
+                          disabled={isPriceLoading}
+                          className="p-1 hover:bg-green-400/10 rounded transition-colors disabled:opacity-50"
+                          title="Refresh BTC Price"
+                        >
+                          <svg
+                            className={`w-3 h-3 text-gray-400 hover:text-green-400 transition-colors ${
+                              isPriceLoading ? 'animate-spin' : ''
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   )}
                   {inputAmount && outputAmount && (
@@ -859,6 +1140,23 @@ const ExchangeComponent = () => {
                 </div>
               ))}
 
+            {/* High Slippage Warning */}
+            {priceImpact > 5 && inputAmount && outputAmount && (
+              <div className="bg-red-900/20 border border-red-500/50 rounded-xl p-3">
+                <div className="flex items-start space-x-3">
+                  <svg className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <div>
+                    <h4 className="text-red-400 font-medium text-sm">High Price Impact</h4>
+                    <p className="text-red-300 text-xs mt-1">
+                      This trade has a price impact of {priceImpact.toFixed(2)}%. You may receive significantly less {toToken} than expected.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Exchange Button */}
             <button
               disabled={
@@ -873,7 +1171,11 @@ const ExchangeComponent = () => {
                   ? handleExecuteExchange
                   : () => setShowWalletModal(true)
               }
-              className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-slate-900 py-4 rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-2"
+              className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-2 ${
+                priceImpact > 5 
+                  ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-500 disabled:to-gray-600'
+                  : 'bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600'
+              } disabled:cursor-not-allowed text-slate-900`}
             >
               {isProcessing || vaultLoading ? (
                 <>
@@ -902,6 +1204,8 @@ const ExchangeComponent = () => {
                 <span>Connect Wallet to Trade</span>
               ) : !inputAmount || Number(inputAmount) === 0 ? (
                 <span>Enter Amount</span>
+              ) : priceImpact > 5 ? (
+                <span>⚠️ Swap Anyway</span>
               ) : (
                 <span>
                   {fromToken === "BTC" ? "Deposit & Mint" : "Burn & Withdraw"}{" "}
@@ -922,9 +1226,20 @@ const ExchangeComponent = () => {
                   <span>0.3%</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Slippage</span>
-                  <span>0.1%</span>
+                  <span className="text-gray-400">Max Slippage</span>
+                  <span className={slippageTolerance > 5 ? 'text-yellow-400' : ''}>{slippageTolerance}%</span>
                 </div>
+                {priceImpact > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Price Impact</span>
+                    <span className={
+                      priceImpact > 5 ? 'text-red-400' : 
+                      priceImpact > 2 ? 'text-yellow-400' : 'text-green-400'
+                    }>
+                      {priceImpact.toFixed(2)}%
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>
