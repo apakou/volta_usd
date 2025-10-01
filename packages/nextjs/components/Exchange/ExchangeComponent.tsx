@@ -41,6 +41,7 @@ const ExchangeComponent = () => {
   const { wbtc: wbtcBalance, vusd: vusdBalance, isLoading: balancesLoading, error: balanceError, refetch: refetchBalances } = useWalletBalances();
 
   const [showWalletModal, setShowWalletModal] = useState(false);
+  const [showTransactionPreview, setShowTransactionPreview] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [btcPrice, setBtcPrice] = useState<number>(0);
   const [notification, setNotification] = useState<{
@@ -1113,6 +1114,289 @@ const ExchangeComponent = () => {
         </div>
       )}
 
+      {/* Transaction Preview Modal */}
+      {showTransactionPreview && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="bg-volta-card rounded-2xl sm:rounded-3xl max-w-md w-full border border-gray-700 shadow-2xl max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700">
+              <h3 className="text-xl sm:text-2xl font-bold text-white">
+                Transaction Preview
+              </h3>
+              <button
+                onClick={() => setShowTransactionPreview(false)}
+                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <svg
+                  className="w-6 h-6 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 sm:p-6 space-y-6">
+              {/* Transaction Type Banner */}
+              <div className={`p-4 rounded-xl border ${
+                fromToken === "BTC" 
+                  ? "bg-green-900/20 border-green-500/30" 
+                  : "bg-orange-900/20 border-orange-500/30"
+              }`}>
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    fromToken === "BTC" 
+                      ? "bg-green-500" 
+                      : "bg-orange-500"
+                  }`}>
+                    {fromToken === "BTC" ? (
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-lg text-white">
+                      {fromToken === "BTC" ? "Mint VUSD" : "Burn VUSD"}
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      {fromToken === "BTC" 
+                        ? "Deposit BTC collateral and mint VUSD stablecoin"
+                        : "Burn VUSD stablecoin and withdraw BTC collateral"
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transaction Summary */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-volta-darker rounded-xl">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-sm font-bold">
+                      {fromToken === "BTC" ? "₿" : "V"}
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-400">You Pay</div>
+                      <div className="font-semibold text-white">{fromToken}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-white">{inputAmount}</div>
+                    <div className="text-sm text-gray-400">
+                      {fromToken === "BTC" && btcPrice > 0 && 
+                        `≈ $${(Number(inputAmount) * btcPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      }
+                      {fromToken === "VUSD" && `≈ $${Number(inputAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Arrow */}
+                <div className="flex justify-center">
+                  <div className="w-8 h-8 bg-volta-primary rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-volta-darker rounded-xl">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-volta-primary rounded-full flex items-center justify-center text-sm font-bold">
+                      {toToken === "BTC" ? "₿" : "V"}
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-400">You Receive</div>
+                      <div className="font-semibold text-white">{toToken}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-green-400">{outputAmount}</div>
+                    <div className="text-sm text-gray-400">
+                      {toToken === "BTC" && btcPrice > 0 && 
+                        `≈ $${(Number(outputAmount) * btcPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      }
+                      {toToken === "VUSD" && `≈ $${Number(outputAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transaction Details */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-white">Transaction Details</h4>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Exchange Rate</span>
+                    <span className="text-white font-medium">
+                      1 {fromToken} = {
+                        inputAmount && outputAmount && Number(inputAmount) > 0
+                          ? (Number(outputAmount) / Number(inputAmount)).toFixed(fromToken === "BTC" ? 2 : 8)
+                          : "0"
+                      } {toToken}
+                    </span>
+                  </div>
+
+                  {minimumReceived && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Minimum Received</span>
+                      <span className="text-white font-medium">{minimumReceived} {toToken}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Slippage Tolerance</span>
+                    <span className="text-white font-medium">{slippageTolerance}%</span>
+                  </div>
+
+                  {priceImpact > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Price Impact</span>
+                      <span className={`font-medium ${
+                        priceImpact > 5 ? 'text-red-400' : priceImpact > 2 ? 'text-yellow-400' : 'text-green-400'
+                      }`}>
+                        {priceImpact.toFixed(2)}%
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-1">
+                      <span className="text-gray-400">Network Fee</span>
+                      {gasEstimate.isEstimating && (
+                        <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-white font-medium">
+                        {gasEstimate.estimatedFeeETH} ETH
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        ≈ ${gasEstimate.estimatedFeeUSD}
+                      </div>
+                    </div>
+                  </div>
+
+                  {btcPrice > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">BTC Price</span>
+                      <div className="flex items-center space-x-1">
+                        <span className="text-white font-medium">
+                          ${btcPrice.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </span>
+                        {priceChange !== 'stable' && (
+                          <span className={`text-xs ${priceChange === 'up' ? 'text-green-400' : 'text-red-400'}`}>
+                            {priceChange === 'up' ? '↗' : '↘'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Warnings */}
+              {priceImpact > 5 && (
+                <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl">
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <div>
+                      <h5 className="font-semibold text-red-400 mb-1">High Price Impact</h5>
+                      <p className="text-sm text-red-300">
+                        This transaction has a price impact of {priceImpact.toFixed(2)}%. You may receive significantly less than expected.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Account Balance After Transaction */}
+              <div className="p-4 bg-volta-darker rounded-xl">
+                <h5 className="font-semibold text-white mb-3">Balance After Transaction</h5>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">BTC Balance</span>
+                    <span className="text-white">
+                      {isWalletConnected && !balancesLoading ? (
+                        fromToken === "BTC" 
+                          ? `${Math.max(0, (Number(wbtcBalance.value) / Math.pow(10, wbtcBalance.decimals)) - Number(inputAmount)).toFixed(8)} BTC`
+                          : toToken === "BTC"
+                            ? `${((Number(wbtcBalance.value) / Math.pow(10, wbtcBalance.decimals)) + Number(outputAmount)).toFixed(8)} BTC`
+                            : `${(Number(wbtcBalance.value) / Math.pow(10, wbtcBalance.decimals)).toFixed(8)} BTC`
+                      ) : "Loading..."}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">VUSD Balance</span>
+                    <span className="text-white">
+                      {isWalletConnected && !balancesLoading ? (
+                        fromToken === "VUSD" 
+                          ? `${Math.max(0, (Number(vusdBalance.value) / Math.pow(10, vusdBalance.decimals)) - Number(inputAmount)).toFixed(2)} VUSD`
+                          : toToken === "VUSD"
+                            ? `${((Number(vusdBalance.value) / Math.pow(10, vusdBalance.decimals)) + Number(outputAmount)).toFixed(2)} VUSD`
+                            : `${(Number(vusdBalance.value) / Math.pow(10, vusdBalance.decimals)).toFixed(2)} VUSD`
+                      ) : "Loading..."}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex space-x-3 p-4 sm:p-6 border-t border-gray-700">
+              <button
+                onClick={() => setShowTransactionPreview(false)}
+                className="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setShowTransactionPreview(false);
+                  await handleExecuteExchange();
+                }}
+                disabled={isProcessing || vaultLoading}
+                className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                  priceImpact > 5 
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-500 disabled:to-gray-600'
+                    : 'bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600'
+                } disabled:cursor-not-allowed text-slate-900`}
+              >
+                {isProcessing || vaultLoading ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <span>
+                    {priceImpact > 5 ? "⚠️ Confirm Anyway" : "Confirm Transaction"}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-md mx-auto px-4 sm:px-6">
         <div className="bg-volta-card rounded-2xl p-4 sm:p-6 border border-gray-700">
           {/* Wallet Status */}
@@ -1529,7 +1813,7 @@ const ExchangeComponent = () => {
               }
               onClick={
                 isWalletConnected
-                  ? handleExecuteExchange
+                  ? () => setShowTransactionPreview(true)
                   : () => setShowWalletModal(true)
               }
               className={`w-full py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-2 ${
@@ -1572,15 +1856,14 @@ const ExchangeComponent = () => {
               ) : !outputAmount ? (
                 <span>Calculating...</span>
               ) : priceImpact > 5 ? (
-                <span>⚠️ Swap Anyway</span>
+                <span>⚠️ Review Transaction</span>
               ) : (
                 <span className="text-center">
                   <span className="hidden sm:inline">
-                    {fromToken === "BTC" ? "Deposit & Mint" : "Burn & Withdraw"}{" "}
-                    {fromToken === "BTC" ? "VUSD" : "WBTC"}
+                    Preview {fromToken === "BTC" ? "Mint VUSD" : "Burn VUSD"} Transaction
                   </span>
                   <span className="sm:hidden">
-                    {fromToken === "BTC" ? "Mint VUSD" : "Burn VUSD"}
+                    Review Transaction
                   </span>
                 </span>
               )}
