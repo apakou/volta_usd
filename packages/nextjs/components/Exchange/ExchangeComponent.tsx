@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useVoltaVault } from "../../hooks/useVoltaVault";
 import { usePersistentWallet } from "../../hooks/usePersistentWallet";
 import { useWalletBalances } from "../../hooks/useWalletBalances";
+import { LightningExchange } from "./LightningExchange";
 
 const ExchangeComponent = () => {
   const [inputAmount, setInputAmount] = useState("");
@@ -1824,28 +1825,30 @@ const ExchangeComponent = () => {
               </div>
             )}
 
-            {/* Exchange Button */}
-            <button
-              disabled={
-                !isWalletConnected ||
-                !inputAmount ||
-                Number(inputAmount) === 0 ||
-                isProcessing ||
-                vaultLoading ||
-                !!inputError ||
-                !!slippageError ||
-                !outputAmount
-              }
-              onClick={
-                isWalletConnected
-                  ? () => setShowTransactionPreview(true)
-                  : () => setShowWalletModal(true)
-              }
-              className={`w-full py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-2 ${
-                priceImpact > 5 
-                  ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-500 disabled:to-gray-600'
-                  : 'bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600'
-              } disabled:cursor-not-allowed text-slate-900`}
+            {/* Payment Method Selection */}
+            <div className="space-y-3">
+              {/* Traditional Exchange Button */}
+              <button
+                disabled={
+                  !isWalletConnected ||
+                  !inputAmount ||
+                  Number(inputAmount) === 0 ||
+                  isProcessing ||
+                  vaultLoading ||
+                  !!inputError ||
+                  !!slippageError ||
+                  !outputAmount
+                }
+                onClick={
+                  isWalletConnected
+                    ? () => setShowTransactionPreview(true)
+                    : () => setShowWalletModal(true)
+                }
+                className={`w-full py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-2 ${
+                  priceImpact > 5 
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-500 disabled:to-gray-600'
+                    : 'bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600'
+                } disabled:cursor-not-allowed text-slate-900`}
             >
               {isProcessing || vaultLoading ? (
                 <>
@@ -1892,7 +1895,37 @@ const ExchangeComponent = () => {
                   </span>
                 </span>
               )}
-            </button>
+              </button>
+              
+              {/* Lightning Payment Option - Only show for BTC to VUSD */}
+              {fromToken === "BTC" && inputAmount && outputAmount && isWalletConnected && !inputError && address && (
+                <LightningExchange
+                  vusdAmount={Number(outputAmount)}
+                  userStarknetAddress={address}
+                  btcPriceUsd={btcPrice}
+                  onPaymentComplete={(payment) => {
+                    // Handle successful Lightning payment
+                    console.log('Lightning payment completed:', payment);
+                    
+                    // Show success notification
+                    setNotification({
+                      type: "success",
+                      title: "Lightning Payment Completed!",
+                      message: `Successfully minted ${outputAmount} VUSD via Lightning Network`,
+                    });
+                    
+                    // Reset form
+                    setInputAmount("");
+                    setOutputAmount("");
+                    
+                    // Refresh balances
+                    setTimeout(() => {
+                      refetchBalances();
+                    }, 2000);
+                  }}
+                />
+              )}
+            </div>
 
             {/* Transaction Details */}
             {inputAmount && outputAmount && (
