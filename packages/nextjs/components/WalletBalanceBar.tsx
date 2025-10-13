@@ -21,7 +21,7 @@ const WalletBalanceBar = () => {
             {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Connected"}
           </span>
         </div> */}
-        
+
         {/* Center - Balance Display */}
         <div className="flex items-center space-x-8 px-8 py-3">
           {error && (
@@ -29,14 +29,16 @@ const WalletBalanceBar = () => {
               Failed to load balances
             </div>
           )}
-          
+
           {/* WBTC Balance */}
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1">
               <div className="w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">₿</span>
               </div>
-              <span className="text-sm font-satoshi font-medium text-gray-300">WBTC</span>
+              <span className="text-sm font-satoshi font-medium text-gray-300">
+                WBTC
+              </span>
             </div>
             <span className="text-sm font-satoshi font-semibold text-white">
               {balancesLoading ? (
@@ -53,7 +55,9 @@ const WalletBalanceBar = () => {
               <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">V</span>
               </div>
-              <span className="text-sm font-satoshi font-medium text-gray-300">VUSD</span>
+              <span className="text-sm font-satoshi font-medium text-gray-300">
+                VUSD
+              </span>
             </div>
             <span className="text-sm font-satoshi font-semibold text-white">
               {balancesLoading ? (

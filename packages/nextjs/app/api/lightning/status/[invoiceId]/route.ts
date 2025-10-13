@@ -1,8 +1,8 @@
 // Lightning Payment Status API
 // GET /api/lightning/status/[invoiceId]
 
-import { NextRequest, NextResponse } from 'next/server';
-import { chipiPayService } from '../../../../../services/lightning';
+import { NextRequest, NextResponse } from "next/server";
+import { chipiPayService } from "../../../../../services/lightning";
 
 /**
  * Get Lightning invoice status
@@ -10,15 +10,15 @@ import { chipiPayService } from '../../../../../services/lightning';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { invoiceId: string } }
+  { params }: { params: { invoiceId: string } },
 ) {
   try {
     const invoiceId = params.invoiceId;
 
     if (!invoiceId) {
       return NextResponse.json(
-        { error: 'Invoice ID is required' },
-        { status: 400 }
+        { error: "Invoice ID is required" },
+        { status: 400 },
       );
     }
 
@@ -38,20 +38,19 @@ export async function GET(
         createdAt: invoice.createdAt,
         expiresAt: invoice.expiresAt,
         paidAt: invoice.paidAt,
-        paymentHash: invoice.paymentHash
-      }
-    });
-
-  } catch (error) {
-    console.error('Error getting invoice status:', error);
-    
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Failed to get invoice status',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        paymentHash: invoice.paymentHash,
       },
-      { status: 500 }
+    });
+  } catch (error) {
+    console.error("Error getting invoice status:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to get invoice status",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
 }
@@ -63,9 +62,9 @@ export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
     },
   });
 }

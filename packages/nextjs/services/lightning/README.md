@@ -17,6 +17,7 @@ The Lightning integration uses a dual-service architecture:
 Manages bridge requests for converting Lightning payments to VUSD on Starknet.
 
 **Key Methods:**
+
 - `createBridgeRequest()` - Create atomic swap bridge
 - `getBridgeStatus()` - Monitor bridge progress
 - `executeBridge()` - Execute bridge after payment
@@ -27,6 +28,7 @@ Manages bridge requests for converting Lightning payments to VUSD on Starknet.
 Handles Lightning invoice creation and payment verification.
 
 **Key Methods:**
+
 - `createInvoice()` - Generate Lightning invoices
 - `getInvoiceStatus()` - Check payment status
 - `verifyPayment()` - Confirm payment completion
@@ -37,6 +39,7 @@ Handles Lightning invoice creation and payment verification.
 Coordinates the complete Lightning-to-VUSD flow.
 
 **Key Methods:**
+
 - `createPaymentFlow()` - Start complete payment process
 - `processPaymentCompletion()` - Handle successful payments
 - `getPaymentSummary()` - Calculate fees and timing
@@ -53,7 +56,7 @@ Create a `.env.local` file with the following variables:
 NEXT_PUBLIC_CHIPI_PAY_API_KEY=chipi_test_your_api_key_here
 CHIPI_PAY_WEBHOOK_SECRET=your_webhook_secret_here
 
-# Atomiq Configuration  
+# Atomiq Configuration
 NEXT_PUBLIC_ATOMIQ_API_KEY=atomiq_test_your_api_key_here
 
 # Application URL (for webhooks)
@@ -63,6 +66,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ### Development Mode
 
 Services automatically use mock responses when:
+
 - Environment is 'testnet'
 - API keys don't start with proper prefixes
 - Real API endpoints are unavailable
@@ -72,30 +76,30 @@ Services automatically use mock responses when:
 ### Basic Lightning Payment
 
 ```typescript
-import { lightningOrchestrator } from '@/services/lightning';
+import { lightningOrchestrator } from "@/services/lightning";
 
 // Create payment flow
 const paymentFlow = await lightningOrchestrator.createPaymentFlow({
   vusdAmount: 100,
-  userStarknetAddress: '0x1234...',
+  userStarknetAddress: "0x1234...",
   btcPriceUsd: 45000,
-  description: 'VOLTA USD Purchase'
+  description: "VOLTA USD Purchase",
 });
 
 // Display invoice to user
-console.log('Payment Invoice:', paymentFlow.invoice.bolt11);
-console.log('QR Code:', paymentFlow.invoice.qrCode);
+console.log("Payment Invoice:", paymentFlow.invoice.bolt11);
+console.log("QR Code:", paymentFlow.invoice.qrCode);
 ```
 
 ### Monitor Payment Status
 
 ```typescript
-import { chipiPayService } from '@/services/lightning';
+import { chipiPayService } from "@/services/lightning";
 
 // Check invoice status
 const status = await chipiPayService.getInvoiceStatus(invoiceId);
 
-if (status.status === 'paid') {
+if (status.status === "paid") {
   // Process payment completion
   await lightningOrchestrator.processPaymentCompletion(invoiceId);
 }
@@ -104,16 +108,16 @@ if (status.status === 'paid') {
 ### Calculate Payment Summary
 
 ```typescript
-import { lightningOrchestrator } from '@/services/lightning';
+import { lightningOrchestrator } from "@/services/lightning";
 
 const summary = await lightningOrchestrator.getPaymentSummary({
   vusdAmount: 100,
-  btcPriceUsd: 45000
+  btcPriceUsd: 45000,
 });
 
-console.log('BTC Amount:', summary.btcAmount);
-console.log('Total Fees:', summary.fees.totalFee);
-console.log('Estimated Time:', summary.estimatedTime);
+console.log("BTC Amount:", summary.btcAmount);
+console.log("Total Fees:", summary.fees.totalFee);
+console.log("Estimated Time:", summary.estimatedTime);
 ```
 
 ## Payment Flow
@@ -131,7 +135,7 @@ console.log('Estimated Time:', summary.estimatedTime);
 All services include comprehensive error handling with specific error codes:
 
 ```typescript
-import { LightningError, LIGHTNING_ERROR_CODES } from '@/services/lightning';
+import { LightningError, LIGHTNING_ERROR_CODES } from "@/services/lightning";
 
 try {
   await lightningOrchestrator.createPaymentFlow(params);
@@ -153,14 +157,17 @@ try {
 ## Fees and Limits
 
 ### Lightning Network Fees
+
 - **Lightning Fee**: ~1-3 sats per transaction
 - **Routing Fee**: Variable based on path and amount
 
 ### Bridge Fees
+
 - **Bridge Fee**: 0.5% of transaction amount
 - **Gas Fee**: Variable Starknet gas costs
 
 ### Limits
+
 - **Minimum**: 1,000 sats (~$0.50 at $50k BTC)
 - **Maximum**: 1 BTC (~$50,000 at $50k BTC)
 - **Invoice Expiry**: 1 hour (configurable)
@@ -192,24 +199,28 @@ In development mode, services return realistic mock data:
 ## Integration Roadmap
 
 ### Phase 1: Foundation ✅
+
 - [x] Service architecture setup
 - [x] TypeScript interfaces
 - [x] Mock implementations
 - [x] Error handling system
 
 ### Phase 2: React Integration (Next)
+
 - [ ] React hooks (`useLightningPayment`, `useAtomiq`, `useWebLN`)
 - [ ] Payment UI components
 - [ ] Status monitoring components
 - [ ] QR code display components
 
 ### Phase 3: API Integration
+
 - [ ] Real Atomiq API integration
 - [ ] Real Chipi Pay API integration
 - [ ] Webhook endpoints
 - [ ] Payment persistence
 
 ### Phase 4: Production Features
+
 - [ ] Analytics and metrics
 - [ ] Payment history
 - [ ] Refund handling
@@ -235,6 +246,6 @@ For issues or questions about the Lightning integration:
 ## Related Documentation
 
 - [Lightning Requirements](../../docs/lightning-research/lightning-requirements.md)
-- [Atomiq Integration](../../docs/lightning-research/atomiq-integration.md) 
+- [Atomiq Integration](../../docs/lightning-research/atomiq-integration.md)
 - [Chipi Pay Integration](../../docs/lightning-research/chipi-pay-integration.md)
 - [TypeScript Interfaces](../../types/lightning/index.ts)

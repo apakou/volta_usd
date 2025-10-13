@@ -2,12 +2,15 @@
 // Central export point for all Lightning Network services
 
 // Service Classes
-export { AtomiqService, atomiqService } from './atomiqService';
-export { ChipiPayService, chipiPayService } from './chipiPayService';
-export { LightningOrchestrator, lightningOrchestrator } from './lightningOrchestrator';
+export { AtomiqService, atomiqService } from "./atomiqService";
+export { ChipiPayService, chipiPayService } from "./chipiPayService";
+export {
+  LightningOrchestrator,
+  lightningOrchestrator,
+} from "./lightningOrchestrator";
 
 // Configuration and Utilities
-export { 
+export {
   LIGHTNING_CONFIG,
   LIGHTNING_ERROR_CODES,
   LightningUtils,
@@ -16,14 +19,14 @@ export {
   calculateBridgeFees,
   generateInvoiceDescription,
   calculateBtcAmount,
-  calculateSatsAmount
-} from './lightningTypes';
+  calculateSatsAmount,
+} from "./lightningTypes";
 
 // Environment Configuration
-export { 
+export {
   lightningEnvironment,
-  getLightningConfig
-} from './lightningEnvironment';
+  getLightningConfig,
+} from "./lightningEnvironment";
 
 // Re-export types for convenience
 export type {
@@ -41,5 +44,5 @@ export type {
   ChipiPayError,
   WebLNProvider,
   WebLNInfo,
-  WebLNPaymentResponse
-} from '../../types/lightning';
+  WebLNPaymentResponse,
+} from "../../types/lightning";

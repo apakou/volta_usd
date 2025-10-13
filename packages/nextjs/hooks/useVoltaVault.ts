@@ -113,17 +113,17 @@ export const useVoltaVault = () => {
   // Convert number to Cairo u256 format
   const numberToCairoU256 = (value: string | number) => {
     let bigintValue: bigint;
-    
+
     try {
-      if (typeof value === 'string') {
+      if (typeof value === "string") {
         // Remove any whitespace
         const cleanValue = value.trim();
-        
-        if (cleanValue.includes('.')) {
+
+        if (cleanValue.includes(".")) {
           // Handle decimal strings - convert to integer by removing decimal
           // This assumes the value is already in the correct unit (wei/satoshi)
-          const [integerPart] = cleanValue.split('.');
-          bigintValue = BigInt(integerPart || '0');
+          const [integerPart] = cleanValue.split(".");
+          bigintValue = BigInt(integerPart || "0");
         } else {
           // Already an integer string
           bigintValue = BigInt(cleanValue);
@@ -133,10 +133,12 @@ export const useVoltaVault = () => {
         bigintValue = BigInt(Math.floor(value));
       }
     } catch (error) {
-      console.error('Error converting value to BigInt:', { value, error });
-      throw new Error(`Cannot convert ${value} to BigInt. Expected integer or integer string.`);
+      console.error("Error converting value to BigInt:", { value, error });
+      throw new Error(
+        `Cannot convert ${value} to BigInt. Expected integer or integer string.`,
+      );
     }
-    
+
     return {
       low: bigintValue & ((1n << 128n) - 1n),
       high: bigintValue >> 128n,
@@ -182,7 +184,10 @@ export const useVoltaVault = () => {
       setTransactions((prev) => [pendingTransaction, ...prev]);
 
       // Debug logging
-      console.log('depositWbtcMintVusd - wbtcAmount:', { wbtcAmount, type: typeof wbtcAmount });
+      console.log("depositWbtcMintVusd - wbtcAmount:", {
+        wbtcAmount,
+        type: typeof wbtcAmount,
+      });
 
       const amountU256 = numberToCairoU256(wbtcAmount);
 
@@ -252,7 +257,10 @@ export const useVoltaVault = () => {
       setTransactions((prev) => [pendingTransaction, ...prev]);
 
       // Debug logging
-      console.log('burnVusdWithdrawWbtc - vusdAmount:', { vusdAmount, type: typeof vusdAmount });
+      console.log("burnVusdWithdrawWbtc - vusdAmount:", {
+        vusdAmount,
+        type: typeof vusdAmount,
+      });
 
       const amountU256 = numberToCairoU256(vusdAmount);
 
@@ -296,7 +304,10 @@ export const useVoltaVault = () => {
     if (!contract) return 0;
 
     try {
-      console.log('calculateVusdFromWbtc - wbtcAmount:', { wbtcAmount, type: typeof wbtcAmount });
+      console.log("calculateVusdFromWbtc - wbtcAmount:", {
+        wbtcAmount,
+        type: typeof wbtcAmount,
+      });
       const amountU256 = numberToCairoU256(wbtcAmount);
       const result = await contract.call("calculate_vusd_from_wbtc", [
         amountU256,
@@ -313,7 +324,10 @@ export const useVoltaVault = () => {
     if (!contract) return 0;
 
     try {
-      console.log('calculateWbtcFromVusd - vusdAmount:', { vusdAmount, type: typeof vusdAmount });
+      console.log("calculateWbtcFromVusd - vusdAmount:", {
+        vusdAmount,
+        type: typeof vusdAmount,
+      });
       const amountU256 = numberToCairoU256(vusdAmount);
       const result = await contract.call("calculate_wbtc_from_vusd", [
         amountU256,
@@ -348,7 +362,7 @@ export const useVoltaVault = () => {
         error: err,
         contractAddress: contract.address,
         account: account?.address,
-        status
+        status,
       });
       return 0;
     }

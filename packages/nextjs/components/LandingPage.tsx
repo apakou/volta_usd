@@ -98,8 +98,8 @@ const LandingPage = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">Deposit Bitcoin</h3>
               <p className="text-gray-400">
-                Lock your Bitcoin as collateral in VOLTA&apos;s secure smart contract
-                vault
+                Lock your Bitcoin as collateral in VOLTA&apos;s secure smart
+                contract vault
               </p>
             </div>
 

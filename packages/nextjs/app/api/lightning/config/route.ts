@@ -1,8 +1,8 @@
 // Lightning Configuration Status API
 // GET /api/lightning/config
 
-import { NextRequest, NextResponse } from 'next/server';
-import { lightningEnvironment } from '../../../../services/lightning/lightningEnvironment';
+import { NextRequest, NextResponse } from "next/server";
+import { lightningEnvironment } from "../../../../services/lightning/lightningEnvironment";
 
 /**
  * Get Lightning configuration status
@@ -11,7 +11,7 @@ import { lightningEnvironment } from '../../../../services/lightning/lightningEn
 export async function GET(request: NextRequest) {
   try {
     const status = lightningEnvironment.getStatus();
-    
+
     // Don't expose sensitive information in production
     const safeStatus = {
       isConfigured: status.isConfigured,
@@ -23,24 +23,23 @@ export async function GET(request: NextRequest) {
       webhookUrl: status.isDevelopment ? status.webhookUrl : undefined,
       // Only expose debug status in development
       debugEnabled: status.isDevelopment ? status.debugEnabled : undefined,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json({
       success: true,
-      status: safeStatus
+      status: safeStatus,
     });
-
   } catch (error) {
-    console.error('Error getting configuration status:', error);
-    
+    console.error("Error getting configuration status:", error);
+
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: 'Failed to get configuration status',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        error: "Failed to get configuration status",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -52,9 +51,9 @@ export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
     },
   });
 }

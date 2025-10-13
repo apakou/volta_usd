@@ -38,62 +38,68 @@ Open browser console and run:
 
 ```javascript
 // Test Lightning configuration
-fetch('/api/lightning/config')
-  .then(r => r.json())
+fetch("/api/lightning/config")
+  .then((r) => r.json())
   .then(console.log);
 ```
 
 ## API Endpoints
 
 ### Payment Creation
+
 **POST** `/api/lightning/create`
 
 ```javascript
 // Create Lightning payment
-const response = await fetch('/api/lightning/create', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+const response = await fetch("/api/lightning/create", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     vusdAmount: 100,
-    userStarknetAddress: '0x1234...',
+    userStarknetAddress: "0x1234...",
     btcPriceUsd: 45000,
-    description: 'VOLTA USD Purchase'
-  })
+    description: "VOLTA USD Purchase",
+  }),
 });
 
 const { paymentFlow } = await response.json();
-console.log('Payment Flow:', paymentFlow);
+console.log("Payment Flow:", paymentFlow);
 ```
 
 ### Payment Status
+
 **GET** `/api/lightning/status/[invoiceId]`
 
 ```javascript
 // Check payment status
-const invoiceId = 'inv_1234567890';
+const invoiceId = "inv_1234567890";
 const response = await fetch(`/api/lightning/status/${invoiceId}`);
 const { invoice } = await response.json();
-console.log('Invoice Status:', invoice.status);
+console.log("Invoice Status:", invoice.status);
 ```
 
 ### Payment Summary
+
 **GET** `/api/lightning/summary?vusdAmount=100&btcPriceUsd=45000`
 
 ```javascript
 // Get payment fees and timing
-const response = await fetch('/api/lightning/summary?vusdAmount=100&btcPriceUsd=45000');
+const response = await fetch(
+  "/api/lightning/summary?vusdAmount=100&btcPriceUsd=45000",
+);
 const { summary } = await response.json();
-console.log('Payment Summary:', summary);
+console.log("Payment Summary:", summary);
 ```
 
 ### Configuration Status
+
 **GET** `/api/lightning/config`
 
 ```javascript
 // Check Lightning configuration
-const response = await fetch('/api/lightning/config');
+const response = await fetch("/api/lightning/config");
 const { status } = await response.json();
-console.log('Lightning Status:', status);
+console.log("Lightning Status:", status);
 ```
 
 ## Testing Tools
@@ -108,20 +114,20 @@ const { testAll, testLightning, testConfig } = window.LightningTester || {};
 testAll();
 
 // Test specific components
-testConfig();        // Test configuration
-testLightning();     // Test payment flow
+testConfig(); // Test configuration
+testLightning(); // Test payment flow
 ```
 
 ### Node.js Testing
 
 ```javascript
 // In a Node.js script or Next.js API route
-import { 
-  testAll, 
-  testLightning, 
-  testConfig, 
-  LightningTester 
-} from '@/services/lightning/lightningTester';
+import {
+  testAll,
+  testLightning,
+  testConfig,
+  LightningTester,
+} from "@/services/lightning/lightningTester";
 
 // Run comprehensive tests
 await testAll();
@@ -136,6 +142,7 @@ await testLightning();
 In development, all services use realistic mock responses:
 
 ### Mock Invoice Response
+
 ```json
 {
   "id": "inv_1234567890",
@@ -148,6 +155,7 @@ In development, all services use realistic mock responses:
 ```
 
 ### Mock Bridge Response
+
 ```json
 {
   "id": "bridge_1234567890",
@@ -161,39 +169,42 @@ In development, all services use realistic mock responses:
 ## Development Workflow
 
 ### 1. Test Configuration
+
 ```javascript
 // Verify Lightning services are configured
-const configTest = await fetch('/api/lightning/config');
+const configTest = await fetch("/api/lightning/config");
 console.log(await configTest.json());
 ```
 
 ### 2. Create Test Payment
+
 ```javascript
 // Create a test Lightning payment
-const payment = await fetch('/api/lightning/create', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+const payment = await fetch("/api/lightning/create", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     vusdAmount: 10,
-    userStarknetAddress: '0x123...abc',
-    btcPriceUsd: 45000
-  })
+    userStarknetAddress: "0x123...abc",
+    btcPriceUsd: 45000,
+  }),
 });
 
 const result = await payment.json();
-console.log('Test Payment:', result.paymentFlow);
+console.log("Test Payment:", result.paymentFlow);
 ```
 
 ### 3. Monitor Payment Status
+
 ```javascript
 // Poll payment status
 const invoiceId = result.paymentFlow.invoice.id;
 const checkStatus = async () => {
   const status = await fetch(`/api/lightning/status/${invoiceId}`);
   const data = await status.json();
-  console.log('Status:', data.invoice.status);
-  
-  if (data.invoice.status === 'pending') {
+  console.log("Status:", data.invoice.status);
+
+  if (data.invoice.status === "pending") {
     setTimeout(checkStatus, 2000); // Poll every 2 seconds
   }
 };
@@ -208,16 +219,19 @@ checkStatus();
 For testing webhooks locally, use a tunneling service:
 
 1. **Install ngrok** (or similar):
+
    ```bash
    npm install -g ngrok
    ```
 
 2. **Start tunnel**:
+
    ```bash
    ngrok http 3000
    ```
 
 3. **Update environment**:
+
    ```env
    WEBHOOK_TUNNEL_URL=https://abc123.ngrok.io
    ```
@@ -231,42 +245,48 @@ For testing webhooks locally, use a tunneling service:
    ```
 
 ### Manual Webhook Testing
+
 ```javascript
 // Simulate webhook event
-const webhookTest = await fetch('/api/lightning/webhook/bridge_test_123', {
-  method: 'POST',
+const webhookTest = await fetch("/api/lightning/webhook/bridge_test_123", {
+  method: "POST",
   headers: {
-    'Content-Type': 'application/json',
-    'x-chipipay-signature': 'test_signature'
+    "Content-Type": "application/json",
+    "x-chipipay-signature": "test_signature",
   },
   body: JSON.stringify({
-    event_type: 'invoice.paid',
-    invoice_id: 'inv_test_123',
+    event_type: "invoice.paid",
+    invoice_id: "inv_test_123",
     amount: 100000,
-    timestamp: Date.now()
-  })
+    timestamp: Date.now(),
+  }),
 });
 
-console.log('Webhook Response:', await webhookTest.json());
+console.log("Webhook Response:", await webhookTest.json());
 ```
 
 ## Common Issues & Solutions
 
 ### Issue: "Configuration not found"
+
 **Solution**: Check that `.env.local` exists and contains Lightning configuration.
 
 ### Issue: "Invalid API key format"
+
 **Solution**: In development, use `LIGHTNING_MOCK_MODE=true` to bypass API key validation.
 
 ### Issue: "Webhook signature verification failed"
+
 **Solution**: In development, webhook signature verification is skipped automatically.
 
 ### Issue: "Payment flow creation failed"
+
 **Solution**: Check that all required parameters are provided and valid.
 
 ## Production Setup
 
 ### Environment Variables
+
 ```env
 # Production API Keys (get from providers)
 NEXT_PUBLIC_CHIPI_PAY_API_KEY=chipi_live_your_real_key
@@ -282,6 +302,7 @@ DEBUG_LIGHTNING=false
 ```
 
 ### Webhook Configuration
+
 1. Configure webhook URL with your payment provider
 2. Use HTTPS for production webhooks
 3. Implement proper signature verification

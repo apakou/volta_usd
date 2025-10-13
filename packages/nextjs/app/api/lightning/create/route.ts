@@ -1,8 +1,8 @@
 // Lightning Payment Creation API
 // POST /api/lightning/create
 
-import { NextRequest, NextResponse } from 'next/server';
-import { lightningOrchestrator } from '../../../../services/lightning';
+import { NextRequest, NextResponse } from "next/server";
+import { lightningOrchestrator } from "../../../../services/lightning";
 
 interface CreatePaymentRequest {
   vusdAmount: number;
@@ -18,15 +18,15 @@ interface CreatePaymentRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: CreatePaymentRequest = await request.json();
-    
+
     // Validate required fields
     if (!body.vusdAmount || !body.userStarknetAddress || !body.btcPriceUsd) {
       return NextResponse.json(
-        { 
-          error: 'Missing required fields',
-          required: ['vusdAmount', 'userStarknetAddress', 'btcPriceUsd']
+        {
+          error: "Missing required fields",
+          required: ["vusdAmount", "userStarknetAddress", "btcPriceUsd"],
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -34,16 +34,16 @@ export async function POST(request: NextRequest) {
     const validation = lightningOrchestrator.validatePaymentRequirements({
       vusdAmount: body.vusdAmount,
       userStarknetAddress: body.userStarknetAddress,
-      btcPriceUsd: body.btcPriceUsd
+      btcPriceUsd: body.btcPriceUsd,
     });
 
     if (!validation.isValid) {
       return NextResponse.json(
-        { 
-          error: 'Validation failed',
-          errors: validation.errors
+        {
+          error: "Validation failed",
+          errors: validation.errors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       vusdAmount: body.vusdAmount,
       userStarknetAddress: body.userStarknetAddress,
       btcPriceUsd: body.btcPriceUsd,
-      description: body.description
+      description: body.description,
     });
 
     return NextResponse.json({
@@ -72,23 +72,22 @@ export async function POST(request: NextRequest) {
           qrCode: paymentFlow.invoice.qrCode,
           deepLink: paymentFlow.invoice.deepLink,
           expiresAt: paymentFlow.invoice.expiresAt,
-          paymentHash: paymentFlow.invoice.paymentHash
+          paymentHash: paymentFlow.invoice.paymentHash,
         },
         steps: paymentFlow.steps,
-        createdAt: paymentFlow.createdAt
-      }
-    });
-
-  } catch (error) {
-    console.error('Error creating Lightning payment:', error);
-    
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Failed to create Lightning payment',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        createdAt: paymentFlow.createdAt,
       },
-      { status: 500 }
+    });
+  } catch (error) {
+    console.error("Error creating Lightning payment:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to create Lightning payment",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
 }
@@ -100,9 +99,9 @@ export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
     },
   });
 }
