@@ -17,7 +17,6 @@ const ScaffoldStarkApp = ({ children }: { children: React.ReactNode }) => {
     <>
       <div className="flex relative flex-col min-h-screen bg-volta-dark">
         <Navbar />
-        <WalletBalanceBar />
         <main className="relative flex flex-col flex-1">{children}</main>
       </div>
       <Toaster />

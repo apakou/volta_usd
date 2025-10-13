@@ -1,4 +1,4 @@
-import { braavos, InjectedConnector, ready } from "@starknet-react/core";
+import { braavos, InjectedConnector, argent } from "@starknet-react/core";
 import { getTargetNetworks } from "~~/utils/scaffold-stark";
 import { BurnerConnector } from "@scaffold-stark/stark-burner";
 import scaffoldConfig from "~~/scaffold.config";
@@ -25,7 +25,7 @@ function withDisconnectWrapper(connector: InjectedConnector) {
 function getConnectors() {
   const { targetNetworks } = scaffoldConfig;
 
-  const connectors: InjectedConnector[] = [ready(), braavos()];
+  const connectors: InjectedConnector[] = [argent(), braavos()];
   const isDevnet = targetNetworks.some(
     (network) => (network.network as string) === "devnet",
   );

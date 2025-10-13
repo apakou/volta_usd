@@ -51,12 +51,12 @@ const Navbar = () => {
             >
               Exchange
             </Link>
-            <Link
+            {/* <Link
               href="/lightning"
               className="text-sm font-satoshi font-medium text-gray-300 hover:text-white transition-colors duration-200"
             >
               Lightning 2025
-            </Link>
+            </Link> */}
           </div>
 
           {/* Right - App Button */}
