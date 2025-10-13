@@ -162,12 +162,27 @@ export const useWalletBalances = (): WalletBalances => {
     }
   }, [wbtcError, vusdError]);
 
-  // Manual refetch function
-  const refetch = async () => {
-    try {
-      await Promise.all([refetchWbtc(), refetchVusd()]);
-    } catch (error) {
-      console.error("Error refetching balances:", error);
+  // Enhanced manual refetch function with retry logic
+  const refetch = async (maxRetries: number = 3) => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Refreshing balances (attempt ${attempt}/${maxRetries})...`);
+        await Promise.all([refetchWbtc(), refetchVusd()]);
+        console.log("Balances refreshed successfully");
+        return;
+      } catch (error) {
+        console.error(`Error refetching balances (attempt ${attempt}/${maxRetries}):`, error);
+        
+        if (attempt === maxRetries) {
+          console.error("Failed to refetch balances after maximum retries");
+          break;
+        }
+        
+        // Wait before retrying (exponential backoff)
+        const delayMs = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+        console.log(`Waiting ${delayMs}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
     }
   };
 

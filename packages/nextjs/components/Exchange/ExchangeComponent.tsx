@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useVoltaVault } from "../../hooks/useVoltaVault";
 import { usePersistentWallet } from "../../hooks/usePersistentWallet";
 import { useWalletBalances } from "../../hooks/useWalletBalances";
-import { LightningExchange } from "./LightningExchange";
+import { useTransactionManager } from "../../hooks/useTransactionManager";
 
 const ExchangeComponent = () => {
   const [inputAmount, setInputAmount] = useState("");
@@ -40,6 +40,9 @@ const ExchangeComponent = () => {
 
   // Wallet balances hook - automatically refreshes after transactions
   const { wbtc: wbtcBalance, vusd: vusdBalance, isLoading: balancesLoading, error: balanceError, refetch: refetchBalances } = useWalletBalances();
+  
+  // Transaction manager for automatic balance refresh after confirmation
+  const { trackTransaction, hasActiveMinting, activeTransactions } = useTransactionManager();
 
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [showTransactionPreview, setShowTransactionPreview] = useState(false);
@@ -74,7 +77,9 @@ const ExchangeComponent = () => {
     try {
       if (fromToken === "BTC") {
         // Try to calculate VUSD from WBTC using VoltaVault
-        const vusdAmount = await calculateVusdFromWbtc(input);
+        // Convert BTC input to satoshis (8 decimals) before calling vault
+        const wbtcAmountWei = toWei(input, 8);
+        const vusdAmount = await calculateVusdFromWbtc(wbtcAmountWei);
         if (vusdAmount > 0) {
           return (vusdAmount / 1e18).toFixed(2); // Convert from wei to readable format
         }
@@ -85,7 +90,9 @@ const ExchangeComponent = () => {
         }
       } else {
         // Try to calculate WBTC from VUSD using VoltaVault
-        const wbtcAmount = await calculateWbtcFromVusd(input);
+        // Convert VUSD input to wei (18 decimals) before calling vault
+        const vusdAmountWei = toWei(input, 18);
+        const wbtcAmount = await calculateWbtcFromVusd(vusdAmountWei);
         if (wbtcAmount > 0) {
           return (wbtcAmount / 1e8).toFixed(8); // Convert from satoshi to BTC
         }
@@ -656,6 +663,7 @@ const ExchangeComponent = () => {
       if (fromToken === "BTC") {
         // Deposit WBTC and mint VUSD
         const wbtcAmountWei = toWei(inputAmount, 8); // Convert to satoshi (8 decimals)
+        console.log('ExchangeComponent - BTC transaction:', { inputAmount, wbtcAmountWei, outputAmount });
         result = await depositWbtcMintVusd(wbtcAmountWei, outputAmount);
 
         // Show success notification for minting
@@ -668,6 +676,7 @@ const ExchangeComponent = () => {
       } else {
         // Burn VUSD and withdraw WBTC - use safe BigInt conversion
         const vusdAmountWei = toWei(inputAmount, 18); // Convert to wei (18 decimals)
+        console.log('ExchangeComponent - VUSD transaction:', { inputAmount, vusdAmountWei, outputAmount });
         result = await burnVusdWithdrawWbtc(vusdAmountWei, outputAmount);
 
         // Show success notification for burning
@@ -683,11 +692,17 @@ const ExchangeComponent = () => {
       setInputAmount("");
       setOutputAmount("");
       
-      // Force balance refresh after successful transaction
-      setTimeout(() => {
-        console.log("Refreshing balances after successful transaction...");
-        refetchBalances();
-      }, 2000); // Wait 2 seconds for the transaction to be processed
+      // Track transaction for automatic balance refresh after confirmation
+      if (result?.transaction_hash) {
+        console.log("Starting transaction tracking for automatic balance refresh...");
+        trackTransaction(result.transaction_hash);
+      } else {
+        // Fallback if no transaction hash is available
+        console.warn("No transaction hash available, refreshing balances with fallback delay...");
+        setTimeout(async () => {
+          await refetchBalances();
+        }, 3000);
+      }
     } catch (error) {
       console.error("Exchange transaction failed:", error);
 
@@ -1438,11 +1453,19 @@ const ExchangeComponent = () => {
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-2 sm:space-y-0">
                 <label className="text-sm text-gray-400 font-medium">From</label>
                 <div className="flex items-center justify-between sm:justify-end space-x-2">
-                  <div className="text-xs sm:text-sm text-gray-400 truncate">
-                    Balance: {isWalletConnected ? 
-                      (balancesLoading ? "Loading..." : 
-                        fromToken === "BTC" ? wbtcBalance.formatted : vusdBalance.formatted
-                      ) : "--"}
+                  <div className="flex items-center space-x-1">
+                    <div className="text-xs sm:text-sm text-gray-400 truncate">
+                      Balance: {isWalletConnected ? 
+                        (balancesLoading ? "Loading..." : 
+                          fromToken === "BTC" ? wbtcBalance.formatted : vusdBalance.formatted
+                        ) : "--"}
+                    </div>
+                    {hasActiveMinting && (
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 border border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs text-yellow-400">Updating...</span>
+                      </div>
+                    )}
                   </div>
                   {isWalletConnected && !balancesLoading && (
                     <button
@@ -1572,11 +1595,19 @@ const ExchangeComponent = () => {
             <div className="bg-volta-darker rounded-xl p-4">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-2 sm:space-y-0">
                 <label className="text-sm text-gray-400 font-medium">To</label>
-                <div className="text-xs sm:text-sm text-gray-400 truncate">
-                  Balance: {isWalletConnected ? 
-                    (balancesLoading ? "Loading..." : 
-                      toToken === "BTC" ? wbtcBalance.formatted : vusdBalance.formatted
-                    ) : "--"}
+                <div className="flex items-center space-x-1">
+                  <div className="text-xs sm:text-sm text-gray-400 truncate">
+                    Balance: {isWalletConnected ? 
+                      (balancesLoading ? "Loading..." : 
+                        toToken === "BTC" ? wbtcBalance.formatted : vusdBalance.formatted
+                      ) : "--"}
+                  </div>
+                  {hasActiveMinting && (
+                    <div className="flex items-center space-x-1">
+                      <div className="w-3 h-3 border border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-xs text-yellow-400">Updating...</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center space-x-2 sm:space-x-3">
@@ -1896,35 +1927,7 @@ const ExchangeComponent = () => {
                 </span>
               )}
               </button>
-              
-              {/* Lightning Payment Option - Only show for BTC to VUSD */}
-              {fromToken === "BTC" && inputAmount && outputAmount && isWalletConnected && !inputError && address && (
-                <LightningExchange
-                  vusdAmount={Number(outputAmount)}
-                  userStarknetAddress={address}
-                  btcPriceUsd={btcPrice}
-                  onPaymentComplete={(payment) => {
-                    // Handle successful Lightning payment
-                    console.log('Lightning payment completed:', payment);
-                    
-                    // Show success notification
-                    setNotification({
-                      type: "success",
-                      title: "Lightning Payment Completed!",
-                      message: `Successfully minted ${outputAmount} VUSD via Lightning Network`,
-                    });
-                    
-                    // Reset form
-                    setInputAmount("");
-                    setOutputAmount("");
-                    
-                    // Refresh balances
-                    setTimeout(() => {
-                      refetchBalances();
-                    }, 2000);
-                  }}
-                />
-              )}
+
             </div>
 
             {/* Transaction Details */}
