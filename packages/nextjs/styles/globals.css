@@ -1,58 +1,8 @@
 @import url("https://api.fontshare.com/v2/css?f[]=satoshi@1,9,700,500,300,400&display=swap");
 
-@import "tailwindcss";
-@config '../tailwind.config.ts';
-
-@plugin "daisyui";
-
-@plugin "daisyui/theme" {
-  name: "dark";
-  prefersdark: true;
-  color-scheme: dark;
-
-  --color-base-content: #fff9fb;
-  --color-base-100: #1c223b;
-  --color-base-200: #2a3655;
-  --color-base-300: #141a30;
-  --color-primary: #212638;
-  --color-primary-content: #dae8ff;
-  --color-secondary: #8b45fd;
-  --color-secondary-content: #0ff;
-  --color-accent: #4969a6;
-  --color-accent-content: #f9fbff;
-  --color-neutral: #f9fbff;
-  --color-neutral-content: #385183;
-  --color-info: #385183;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
-  --rounded-btn: 9999rem;
-}
-
-@plugin "daisyui/theme" {
-  name: "light";
-  default: true;
-  color-scheme: light;
-
-  --color-base-content: #212638;
-  --color-base-100: #ffffff;
-  --color-base-200: #f4f8ff;
-  --color-base-300: #ffffff;
-  --color-neutral: #212638;
-  --color-primary: #93bbfb;
-  --color-primary-content: #2a3655;
-  --color-secondary: #8b45fd;
-  --color-secondary-content: #7800ff;
-  --color-accent: #93bbfb;
-  --color-accent-content: #212638;
-  --color-neutral: #212638;
-  --color-neutral-content: #ffffff;
-  --color-info: #93bbfb;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
-  --rounded-btn: 9999rem;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Shared Utilities */
 
@@ -226,25 +176,25 @@
   }
 }
 
-@utility clip-corner {
+.clip-corner {
   clip-path: polygon(0 0, calc(100% - 1rem) 0, 100% 1rem, 100% 100%, 0 100%);
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: -1px;
-    right: -1px;
-    width: 1rem;
-    height: 1rem;
-    background: inherit;
-    border-top: 1px solid #8a45fc;
-    border-right: 1px solid #8a45fc;
-    clip-path: polygon(100% 0, 0 0, 100% 100%);
-    z-index: 10;
-  }
 }
 
-@utility trapeze {
+.clip-corner::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 1rem;
+  height: 1rem;
+  background: inherit;
+  border-top: 1px solid #8a45fc;
+  border-right: 1px solid #8a45fc;
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  z-index: 10;
+}
+
+.trapeze {
   width: 84px;
   height: 6px;
   clip-path: polygon(10% 100%, 90% 100%, 100% 0, 0 0);
@@ -252,27 +202,28 @@
   background-color: #5c4fe5;
   position: absolute;
   top: -1px;
-  &::before {
-    content: "";
-    position: absolute;
-    top: -1px;
-    right: -1px;
-    width: 84px;
-    height: 6px;
-    background: inherit;
-    clip-path: polygon(100% 100%, 100% 0, 90% 100%);
-  }
 }
 
-@utility btn {
+.trapeze::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 84px;
+  height: 6px;
+  background: inherit;
+  clip-path: polygon(100% 100%, 100% 0, 90% 100%);
+}
+
+.btn {
   @apply rounded-full hover:border-transparent;
 }
 
-@utility btn-sm {
+.btn-sm {
   @apply text-sm;
 }
 
-@utility collapse {
+.collapse {
   @apply rounded-[1rem];
 }
 
@@ -315,7 +266,7 @@
   }
 
   .modal-box {
-    @apply min-h-80 max-w-100 overflow-hidden;
+    @apply min-h-80 max-w-md overflow-hidden;
     transform: translateZ(0);
   }
 

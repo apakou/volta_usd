@@ -38,6 +38,12 @@ const nextConfig = {
     ignoreDuringBuilds: process.env.NEXT_PUBLIC_IGNORE_BUILD_ERROR === "true",
   },
   webpack: (config, { dev, isServer, webpack }) => {
+    // Add path alias for ~~ 
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "~~": config.resolve.alias["~~"] || "./",
+    };
+    
     config.resolve.fallback = { fs: false, net: false, tls: false };
     config.externals.push("pino-pretty", "lokijs", "encoding");
     config.plugins.push(

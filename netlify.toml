@@ -1,6 +1,7 @@
 [build]
   base = "packages/nextjs"
   command = "./netlify-build.sh"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
