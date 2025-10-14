@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 import nextPWA from "next-pwa";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const withPWA = nextPWA({
   dest: "public",
@@ -38,10 +43,10 @@ const nextConfig = {
     ignoreDuringBuilds: process.env.NEXT_PUBLIC_IGNORE_BUILD_ERROR === "true",
   },
   webpack: (config, { dev, isServer, webpack }) => {
-    // Add path alias for ~~ 
+    // Add path alias for ~~ to resolve to the packages/nextjs directory
     config.resolve.alias = {
       ...config.resolve.alias,
-      "~~": config.resolve.alias["~~"] || "./",
+      "~~": __dirname,
     };
     
     config.resolve.fallback = { fs: false, net: false, tls: false };
