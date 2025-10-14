@@ -1,5 +1,6 @@
 [build]
-  base = "packages/nextjs"  
+  base = "packages/nextjs"
+  publish = "out"
   command = "./netlify-build.sh"
 
 [build.environment]
@@ -11,11 +12,13 @@
   NPM_CONFIG_FUND = "false"
   NPM_CONFIG_AUDIT = "false"
   NPM_CONFIG_UPDATE_NOTIFIER = "false"
+  NPM_CONFIG_REGISTRY = "https://registry.npmjs.org/"
+  COREPACK_ENABLE_STRICT = "0"
   CI = "true"
 
-# Netlify Next.js plugin
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+# Netlify Next.js plugin (disabled for now to avoid publish path issues)
+# [[plugins]]
+#   package = "@netlify/plugin-nextjs"
 
 # Handle Next.js client-side routing
 [[redirects]]
