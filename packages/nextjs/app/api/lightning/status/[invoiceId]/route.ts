@@ -10,9 +10,10 @@ import { chipiPayService } from "../../../../../services/lightning";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { invoiceId: string } },
+  context: { params: Promise<{ invoiceId: string }> },
 ) {
   try {
+    const params = await context.params;
     const invoiceId = params.invoiceId;
 
     if (!invoiceId) {

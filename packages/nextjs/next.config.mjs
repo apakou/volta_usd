@@ -11,10 +11,13 @@ const withPWA = nextPWA({
 
 const nextConfig = {
   reactStrictMode: true,
+  // output: 'export', // Disabled for API routes support
   logging: {
     incomingRequests: false,
   },
+  trailingSlash: true,
   images: {
+    unoptimized: true,
     dangerouslyAllowSVG: true,
     remotePatterns: [
       {

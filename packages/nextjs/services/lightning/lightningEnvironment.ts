@@ -128,6 +128,12 @@ export class LightningEnvironment {
   private validateConfiguration(): void {
     const issues: string[] = [];
 
+    // Skip validation during build time
+    if (process.env.NODE_ENV === undefined || process.env.NEXT_PHASE === 'phase-production-build') {
+      console.log('Lightning configuration validation skipped during build');
+      return;
+    }
+
     // Check required environment variables
     if (!process.env.NEXT_PUBLIC_APP_URL) {
       issues.push("NEXT_PUBLIC_APP_URL is not configured");

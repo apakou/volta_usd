@@ -14,9 +14,10 @@ import { ChipiPayWebhookEvent } from "../../../../../types/lightning";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { bridgeId: string } },
+  context: { params: Promise<{ bridgeId: string }> },
 ) {
   try {
+    const params = await context.params;
     const bridgeId = params.bridgeId;
     const signature = request.headers.get("x-chipipay-signature") || "";
     const payload = await request.text();

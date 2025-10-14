@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "export": "next export",
+    "netlify-build": "next build && next export",
     "check-types": "tsc --noEmit --incremental",
     "coverage": "vitest run --coverage",
     "dev": "next dev",
