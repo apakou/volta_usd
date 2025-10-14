@@ -13,7 +13,9 @@ const LightningComponent = () => {
         <h2 className="text-xl font-semibold mb-4">Send Lightning Payment</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Amount (USD)</label>
+            <label className="block text-sm font-medium mb-2">
+              Amount (USD)
+            </label>
             <input
               type="number"
               value={amount}
@@ -23,7 +25,9 @@ const LightningComponent = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Lightning Invoice</label>
+            <label className="block text-sm font-medium mb-2">
+              Lightning Invoice
+            </label>
             <textarea
               value={invoice}
               onChange={(e) => setInvoice(e.target.value)}
@@ -43,10 +47,14 @@ const LightningComponent = () => {
 
       {/* Receive Payment */}
       <div className="bg-gray-800 rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Receive Lightning Payment</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          Receive Lightning Payment
+        </h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Amount (USD)</label>
+            <label className="block text-sm font-medium mb-2">
+              Amount (USD)
+            </label>
             <input
               type="number"
               placeholder="0.00"
@@ -54,7 +62,9 @@ const LightningComponent = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Description (Optional)</label>
+            <label className="block text-sm font-medium mb-2">
+              Description (Optional)
+            </label>
             <input
               type="text"
               placeholder="What's this payment for?"
@@ -84,13 +94,14 @@ const LightningComponent = () => {
             <div className="text-sm text-gray-400">Active Channels</div>
           </div>
         </div>
-        
+
         <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
           <div className="flex items-center">
             <div className="text-yellow-400 mr-2">⚠️</div>
             <div className="text-sm">
-              <strong>Development Mode:</strong> Lightning features are currently in development. 
-              Real Lightning Network integration coming soon.
+              <strong>Development Mode:</strong> Lightning features are
+              currently in development. Real Lightning Network integration
+              coming soon.
             </div>
           </div>
         </div>

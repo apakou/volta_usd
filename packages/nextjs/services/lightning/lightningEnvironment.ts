@@ -129,8 +129,11 @@ export class LightningEnvironment {
     const issues: string[] = [];
 
     // Skip validation during build time
-    if (process.env.NODE_ENV === undefined || process.env.NEXT_PHASE === 'phase-production-build') {
-      console.log('Lightning configuration validation skipped during build');
+    if (
+      process.env.NODE_ENV === undefined ||
+      process.env.NEXT_PHASE === "phase-production-build"
+    ) {
+      console.log("Lightning configuration validation skipped during build");
       return;
     }
 
