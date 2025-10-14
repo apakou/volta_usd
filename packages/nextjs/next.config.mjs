@@ -10,7 +10,7 @@ const withPWA = nextPWA({
 
 const nextConfig = {
   reactStrictMode: true,
-  output: 'export', // Re-enabled for static deployment
+  // output: 'export', // Disabled for API routes support
   logging: {
     incomingRequests: false,
   },
