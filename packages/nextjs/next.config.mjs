@@ -1,5 +1,4 @@
 /** @type {import('next').NextConfig} */
-import webpack from "webpack";
 import nextPWA from "next-pwa";
 
 const withPWA = nextPWA({
@@ -38,7 +37,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: process.env.NEXT_PUBLIC_IGNORE_BUILD_ERROR === "true",
   },
-  webpack: (config, { dev, isServer }) => {
+  webpack: (config, { dev, isServer, webpack }) => {
     config.resolve.fallback = { fs: false, net: false, tls: false };
     config.externals.push("pino-pretty", "lokijs", "encoding");
     config.plugins.push(

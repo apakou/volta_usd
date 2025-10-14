@@ -51,19 +51,23 @@ The application has been successfully configured for Netlify deployment! ✅
    
    **Required for production:**
    ```
-   NEXT_PUBLIC_SEPOLIA_PROVIDER_URL=https://starknet-sepolia.blastapi.io/YOUR_API_KEY/rpc/v0_9
-   NEXT_PUBLIC_MAINNET_PROVIDER_URL=https://starknet-mainnet.blastapi.io/YOUR_API_KEY/rpc/v0_9
+   NEXT_PUBLIC_SEPOLIA_PROVIDER_URL=https://starknet-sepolia.blastapi.io/64168c77-3fa5-4e1e-9fe4-41675d212522/rpc/v0_9
+   NEXT_PUBLIC_MAINNET_PROVIDER_URL=https://starknet-mainnet.blastapi.io/64168c77-3fa5-4e1e-9fe4-41675d212522/rpc/v0_9
    NEXT_PUBLIC_APP_URL=https://your-netlify-domain.netlify.app
-   LIGHTNING_NETWORK=bitcoin
+   LIGHTNING_NETWORK=testnet
    LIGHTNING_MOCK_MODE=false
+   NODE_ENV=production
+   HUSKY=0
    ```
    
-   **Optional (for Lightning features):**
+   **Lightning features (you have production keys):**
    ```
-   NEXT_PUBLIC_CHIPI_PAY_API_KEY=your_chipi_pay_api_key
-   CHIPI_PAY_WEBHOOK_SECRET=your_webhook_secret
+   NEXT_PUBLIC_CHIPI_PAY_API_KEY=pk_prod_2094b9c9b93a84f162a0d9f2b19f358d
+   CHIPI_PAY_WEBHOOK_SECRET=sk_prod_ff69f3e8cea16ed55c34d5c5f6b9ab044e913e8af2532cf1141ddf1545226210
+   NEXT_PUBLIC_ENABLE_LIGHTNING=true
    PAYMENT_MIN_AMOUNT=1
    PAYMENT_MAX_AMOUNT=10000
+   DEBUG_LIGHTNING=false
    ```
 
 4. **Deploy:**

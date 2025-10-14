@@ -1,10 +1,12 @@
 [build]
-  base = "packages/nextjs"
-  command = "npm install --legacy-peer-deps && npm run build"
+  base = "packages/nextjs"  
+  command = "./netlify-build.sh"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
+  NODE_ENV = "production" 
+  HUSKY = "0"
 
 # Netlify Next.js plugin
 [[plugins]]

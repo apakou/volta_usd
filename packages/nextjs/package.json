@@ -6,6 +6,7 @@
     "build": "next build",
     "export": "next export",
     "netlify-build": "next build && next export",
+    "netlify-install": "npm install --legacy-peer-deps --ignore-scripts && cp -n .env.example .env || true",
     "check-types": "tsc --noEmit --incremental",
     "coverage": "vitest run --coverage",
     "dev": "next dev",
@@ -80,6 +81,10 @@
     "vitest": "^3.0.9",
     "webpack": "^5.97.1",
     "webpack-cli": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
   "peerDependencies": {
     "@babel/core": "^7.0.0",
